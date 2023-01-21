@@ -27,18 +27,17 @@ class Spacecraft {
       const Eigen::Vector3d& u_external, 
       double mu) const;
 
-    // Get the LVLH rotation matrix, C_LI
-    Eigen::Matrix3d LVLHRotation(
-      const Eigen::Vector3d& r_inertial,
-      const Eigen::Vector3d& v_inertial
+    // The rotational kinematics:
+    Eigen::Matrix3d RotationMatrixDot(
+      const Eigen::Matrix3d& C,
+      const Eigen::Vector3d& w
     ) const;
 
-    // The rotational kinematics:
-    Eigen::Vector4d QuaternionDot(
-      const Eigen::Vector4d& quaternion,
-      const Eigen::Vector3d& omega
-    );
+    Eigen::Matrix3d Skew(
+      const Eigen::Vector3d& v
+    ) const;
   };
+
 }
 
 #endif
