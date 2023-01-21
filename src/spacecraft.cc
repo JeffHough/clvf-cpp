@@ -8,7 +8,7 @@ Eigen::Vector3d Spacecraft::OmegaDot(
   const Eigen::Vector3d& omega, 
   const Eigen::Vector3d& tau_external) const {
     // Euler dynamics:
-    return inertia_inverse_*(tau_external - omega.cross3(inertia_*omega));
+    return inertia_inverse_*(tau_external - omega.cross(inertia_*omega));
 }
 
 Eigen::Vector3d Spacecraft::RInertialDDot(
