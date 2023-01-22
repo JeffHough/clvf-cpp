@@ -32,10 +32,6 @@ class Spacecraft {
       const Eigen::Matrix3d& C,
       const Eigen::Vector3d& w
     ) const;
-
-    Eigen::Matrix3d Skew(
-      const Eigen::Vector3d& v
-    ) const;
   };
 
 }

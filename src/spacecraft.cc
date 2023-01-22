@@ -1,4 +1,5 @@
 #include "clvf/spacecraft.h"
+#include "clvf/utils.h"
 
 namespace clvf {
 Spacecraft::Spacecraft(const Eigen::Matrix3d& inertia, double mass)
@@ -25,19 +26,7 @@ Eigen::Matrix3d Spacecraft::RotationMatrixDot(
     const Eigen::Matrix3d& C,
     const Eigen::Vector3d& w
 ) const {
-  return -Skew(w)*C;
-}
-  
-Eigen::Matrix3d Spacecraft::Skew(
-  const Eigen::Vector3d& v
-) const {
-  Eigen::Matrix3d skew_matrix;
-  skew_matrix << 
-    0,    -v(2),  v(1),
-    v(2),   0,    v(0),
-    v(1),  -v(0),   0;
-
-  return skew_matrix;
+  return -clvf::Skew(w)*C;
 }
 
 }

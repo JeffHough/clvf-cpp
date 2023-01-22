@@ -12,30 +12,53 @@ class CLVF {
     const double kc_;
     const double ka_;
     const double b_;
+    const double alpha_;
 
-    Eigen::Vector3d CirculationComponent(
-      const Eigen::Vector3d& position
+    // The circulation component:
+    double SFunction(
+      double r,
+      double theta
     ) const;
 
-    Eigen::Vector3d ContractionComponent(
-      const Eigen::Vector3d& position
+    // The contraction component:
+    double VFunction(
+      double r,
+      double theta
+    ) const;
+
+    // The g-function to compensate for target rotation:
+    double GFunction(
+      double r
+    ) const;
+
+    // Computation for alignment direction:
+    Eigen::Vector3d AHatVector(
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& o_hat_vector
     ) const;
 
   public:
+    // No default constructor:
+    CLVF() = delete;
     CLVF(
       double kc,
       double ka,
-      double b
-    ) : kc_{kc}, ka_{ka}, b_{b}{};
+      double b,
+      double alpha
+    ) : kc_{kc}, ka_{ka}, b_{b}, alpha_{alpha}{};
 
     Eigen::Vector3d DesiredVelocity(
-      const Eigen::Vector3d& position
-    ) const;
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_hat_vector,
+    const Eigen::Vector3d& omega_OI,
+    const Eigen::Vector3d& d_vector_dot
+) const;
 
     Eigen::Vector3d DesiredAcceleration(
-      const Eigen::Vector3d& position
+      const Eigen::Vector3d& r_vector
     ) const;
 
+    double AccelerationBound(double w_max, double w_dot_max) const;
 };
 
 // Controller based on CLVFs:
