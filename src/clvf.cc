@@ -39,7 +39,7 @@ double CLVF::AccelerationBound(double w_max, double w_dot_max) const {
 Eigen::Vector3d CLVF::AHatVector(
     const Eigen::Vector3d& r_vector,
     const Eigen::Vector3d& o_hat_vector
-) const {
+) {
     double theta = ThetaFromTwoVectors(r_vector, o_hat_vector);
 
     Eigen::Vector3d r_hat_vector = r_vector.normalized();
@@ -50,6 +50,15 @@ Eigen::Vector3d CLVF::AHatVector(
     }
 
     return Eigen::Vector3d::Zero();
+}
+
+Eigen::Vector3d CLVF::EHatVector(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_hat_vector
+){
+    auto r_hat_vector = r_vector.normalized();
+    auto a_hat_vector = AHatVector(r_vector, o_hat_vector);
+    return r_hat_vector.cross(a_hat_vector);
 }
 
 Eigen::Vector3d CLVF::DesiredVelocity(
@@ -67,5 +76,16 @@ Eigen::Vector3d CLVF::DesiredVelocity(
              + GFunction(r)*clvf::Skew(omega_OI)*r_hat_vector
               + d_vector_dot;
 }
+
+// double CLVF::ThetaDot(
+//     const Eigen::Vector3d& r_vector,
+//     const Eigen::Vector3d& o_hat_vector,
+//     const Eigen::Vector3d& omega_OI
+// ) const {
+//     double r = r_vector.norm();
+//     double theta = clvf::ThetaFromTwoVectors(r_vector, o_hat_vector);
+
+//     return -SFunction(r, theta)/r + (1 - GFunction(r)/r)*omega_OI.dot(EHatVector(r_vector, o_hat_vector));
+// }
     
 } // namespace clvf
