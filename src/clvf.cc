@@ -25,16 +25,17 @@ double CLVF::GFunction(double r) const {
     return alpha_*alpha_/r;
 }
 
-double CLVF::AccelerationBound(double w_max, double w_dot_max) const {
-    double tmp0 = kc_*kc_/b_;
-    double tmp1 = std::pow(ka_ + alpha_*w_max, 2.0)/alpha_;
-    double tmp2 = ka_*ka_/(2.0*alpha_) + ka_*w_max + alpha_*w_dot_max;
+// TODO - ALTER FOR THE 3D VERSION
+// double CLVF::AccelerationBound(double w_max, double w_dot_max) const {
+//     double tmp0 = kc_*kc_/b_;
+//     double tmp1 = std::pow(ka_ + alpha_*w_max, 2.0)/alpha_;
+//     double tmp2 = ka_*ka_/(2.0*alpha_) + ka_*w_max + alpha_*w_dot_max;
 
-    double tmp3 = std::pow(tmp0 + tmp1, 2.0);
-    double tmp4 = std::pow(tmp2, 2.0);
+//     double tmp3 = std::pow(tmp0 + tmp1, 2.0);
+//     double tmp4 = std::pow(tmp2, 2.0);
 
-    return std::sqrt(tmp3 + tmp4);
-}
+//     return std::sqrt(tmp3 + tmp4);
+// }
 
 Eigen::Vector3d CLVF::AHatVector(
     const Eigen::Vector3d& r_vector,
