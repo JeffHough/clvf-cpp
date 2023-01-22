@@ -5,9 +5,12 @@
 
 namespace clvf {
 
+constexpr double kSmallNumber = 1e-7;
+
 // Guidance law based on CLVFs:
 class CLVF {
   private:
+
     // Parameters of the vector field:
     const double kc_;
     const double ka_;
@@ -44,11 +47,36 @@ class CLVF {
     );
 
     // BELOW: several intermediate derivatives to compute the desired acceleration:
-    // double ThetaDot(
-    //   const Eigen::Vector3d& r_vector,
-    //   const Eigen::Vector3d& o_hat_vector,
-    //   const Eigen::Vector3d& omega_OI
-    // ) const;
+    Eigen::Vector3d RHatDot(
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& velocity
+    ) const;
+
+    Eigen::Vector3d AHatDot(
+      const Eigen::Vector3d& a_hat,
+      const Eigen::Vector3d& e_hat,
+      const Eigen::Vector3d& o_hat,
+      const Eigen::Vector3d& r_hat,
+      const Eigen::Vector3d& r_hat_dot,
+      const Eigen::Vector3d& omega_OI
+    ) const;
+
+    double RDot(
+      const Eigen::Vector3d& r_hat,
+      const Eigen::Vector3d& velocity
+    ) const;
+
+    double ThetaDot(
+      const Eigen::Vector3d& o_hat,
+      const Eigen::Vector3d& r_hat_dot,
+      const Eigen::Vector3d& e_hat,
+      const Eigen::Vector3d& omega_OI,
+      double theta
+    ) const;
+
+    double GFunctionDot(double r, double r_dot) const;
+    double SFunctionDot(double theta, double r, double theta_dot, double r_dot) const;
+    double VFunctionDot(double r, double r_dot);
 
   public:
     // No default constructor:
