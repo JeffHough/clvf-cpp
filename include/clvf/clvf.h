@@ -108,7 +108,7 @@ class CLVF {
       const Eigen::Vector3d& d_ddot
     ) const;
 
-    Eigen::Vector3d& Controller(
+    Eigen::Vector3d Controller(
       const Eigen::Vector3d& v_desired,
       const Eigen::Vector3d& v_actual,
       const Eigen::Vector3d& desired_acceleration

@@ -180,7 +180,7 @@ Eigen::Vector3d CLVF::DesiredAcceleration(
                 + d_ddot;
 }
 
-Eigen::Vector3d& CLVF::Controller(
+Eigen::Vector3d CLVF::Controller(
       const Eigen::Vector3d& v_desired,
       const Eigen::Vector3d& v_actual,
       const Eigen::Vector3d& desired_acceleration
