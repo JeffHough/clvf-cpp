@@ -17,6 +17,9 @@ class CLVF {
     const double b_;
     const double alpha_;
 
+    // Parameter of the controller:
+    const double beta_;
+
     // The circulation component:
     double SFunction(
       double r,
@@ -76,7 +79,7 @@ class CLVF {
 
     double GFunctionDot(double r, double r_dot) const;
     double SFunctionDot(double theta, double r, double theta_dot, double r_dot) const;
-    double VFunctionDot(double r, double r_dot);
+    double VFunctionDot(double r, double r_dot) const;
 
   public:
     // No default constructor:
@@ -85,8 +88,9 @@ class CLVF {
       double kc,
       double ka,
       double b,
-      double alpha
-    ) : kc_{kc}, ka_{ka}, b_{b}, alpha_{alpha}{};
+      double alpha,
+      double beta
+    ) : kc_{kc}, ka_{ka}, b_{b}, alpha_{alpha}, beta_{beta}{};
 
     Eigen::Vector3d DesiredVelocity(
       const Eigen::Vector3d& r_vector,
@@ -96,19 +100,25 @@ class CLVF {
     ) const;
 
     Eigen::Vector3d DesiredAcceleration(
-      const Eigen::Vector3d& r_vector
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& velocity,
+      const Eigen::Vector3d& o_hat_vector,
+      const Eigen::Vector3d& omega_OI,
+      const Eigen::Vector3d& omega_dot_OI,
+      const Eigen::Vector3d& d_ddot
+    ) const;
+
+    Eigen::Vector3d& Controller(
+      const Eigen::Vector3d& v_desired,
+      const Eigen::Vector3d& v_actual,
+      const Eigen::Vector3d& desired_acceleration
     ) const;
 
     // TODO - THIS IS NOT CORRECT! NEED THE 3D VERSION.
     // double AccelerationBound(double w_max, double w_dot_max) const;
 };
 
-// TODO - CREATE THE DESIRED ACCELERATION FUNCTION.
 
-// Controller based on CLVFs:
-class CLVFController {
-
-};
 }
 
 #endif
