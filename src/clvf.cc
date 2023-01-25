@@ -181,11 +181,25 @@ Eigen::Vector3d CLVF::DesiredAcceleration(
 }
 
 Eigen::Vector3d CLVF::Controller(
-      const Eigen::Vector3d& v_desired,
-      const Eigen::Vector3d& v_actual,
-      const Eigen::Vector3d& desired_acceleration
-    ) const {
-        return beta_*(v_desired - v_actual) + desired_acceleration;
-    }
+    const Eigen::Vector3d& v_desired,
+    const Eigen::Vector3d& v_actual,
+    const Eigen::Vector3d& desired_acceleration
+) const {
+    return beta_*(v_desired - v_actual) + desired_acceleration;
+}
+
+double CLVF::AccelerationBound(
+    double omega_max,
+    double omega_and_omega_dot_max
+) const {
+    double tmp0 = std::pow(0.7698*kc_*kc_/b_ + ka_*ka_/alpha_, 2.0);
+    double factor = 2.0/(3*std::sqrt(3));
+    double tmp1 = std::pow(ka_*ka_/(2*alpha_) + factor*ka_*omega_max, 2.0);
+
+    double tmp2 = std::sqrt(tmp0 + tmp1);
+    double tmp3 = 2.385*ka_*omega_max + omega_and_omega_dot_max*alpha_;
+
+    return tmp2 + tmp3;
+}
     
 } // namespace clvf

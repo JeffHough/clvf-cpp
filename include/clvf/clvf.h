@@ -114,8 +114,9 @@ class CLVF {
       const Eigen::Vector3d& desired_acceleration
     ) const;
 
-    // TODO - THIS IS NOT CORRECT! NEED THE 3D VERSION.
-    // double AccelerationBound(double w_max, double w_dot_max) const;
+    double AccelerationBound(
+      double omega_max, 
+      double omega_and_omega_dot_max) const;
 };
 
 
