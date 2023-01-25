@@ -119,6 +119,48 @@ class CLVF {
       double omega_and_omega_dot_max) const;
 };
 
+// Class for standard Lyapunov Vector Field:
+class LVF {
+  private:
+    const double v_max_;
+    const double frac_;
+    const double alpha_prime_;
+
+  public:
+    LVF() = delete;
+    LVF(
+      double v_max,
+      double frac,
+      double alpha_prime
+    ):
+    v_max_{v_max}, frac_{frac}, alpha_prime_{alpha_prime}{};
+
+    Eigen::Vector3d DesiredVelocity(
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& o_hat_vector,
+      const Eigen::Vector3d& omega_OI,
+      const Eigen::Vector3d& d_vector_dot
+    ) const;
+
+    Eigen::Vector3d DesiredAcceleration(
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& velocity,
+      const Eigen::Vector3d& o_hat_vector,
+      const Eigen::Vector3d& omega_OI,
+      const Eigen::Vector3d& omega_dot_OI,
+      const Eigen::Vector3d& d_ddot
+    ) const;
+
+    Eigen::Vector3d Controller(
+      const Eigen::Vector3d& v_desired,
+      const Eigen::Vector3d& v_actual,
+      const Eigen::Vector3d& desired_acceleration
+    ) const;
+
+    double AccelerationBound(
+      double omega_max, 
+      double omega_and_omega_dot_max) const;
+};
 
 }
 

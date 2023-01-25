@@ -201,5 +201,8 @@ double CLVF::AccelerationBound(
 
     return tmp2 + tmp3;
 }
+
+// LVF Library:
+
     
 } // namespace clvf
