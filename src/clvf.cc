@@ -180,14 +180,6 @@ Eigen::Vector3d CLVF::DesiredAcceleration(
                 + d_ddot;
 }
 
-Eigen::Vector3d CLVF::Controller(
-    const Eigen::Vector3d& v_desired,
-    const Eigen::Vector3d& v_actual,
-    const Eigen::Vector3d& desired_acceleration
-) const {
-    return beta_*(v_desired - v_actual) + desired_acceleration;
-}
-
 double CLVF::AccelerationBound(
     double omega_max,
     double omega_and_omega_dot_max
@@ -203,6 +195,182 @@ double CLVF::AccelerationBound(
 }
 
 // LVF Library:
+double LVF::ThetaN(double theta) const {
+    return theta < theta_docking_cone_ ? (theta/theta_docking_cone_)*M_PI/2 : M_PI/2;
+}
 
+double LVF::RN(double r) const {
+    return r >= alpha_prime_ ? final_angle_ : r/alpha_prime_ * final_angle_;
+}
+
+Eigen::Vector3d LVF::AHatVector(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_hat_vector
+) {
+    Eigen::Vector3d r_hat_vector = r_vector.normalized();
+    double theta = clvf::ThetaFromTwoVectors(r_hat_vector, o_hat_vector);
+    return r_hat_vector.cross(o_hat_vector.cross(r_hat_vector))/(std::sin(theta) + clvf::kSmallNumber);
+}
+
+Eigen::Vector3d LVF::DesiredVelocity(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_hat_vector,
+    const Eigen::Vector3d& omega_OI,
+    const Eigen::Vector3d& d_dot
+) const {
+    
+    double r = r_vector.norm();
+    Eigen::Vector3d r_hat = r_vector/r;
+    double theta = clvf::ThetaFromTwoVectors(r_vector, o_hat_vector);
+    
+    Eigen::Vector3d a_hat = AHatVector(r_vector, o_hat_vector);
+
+    auto theta_N = ThetaN(theta);
+    auto r_N = RN(r);
+    auto v_rel = VRel(r_N);
+    auto vc = VFunction(v_rel, theta_N);
+    auto sa = SFunction(v_rel, theta_N);
+    auto g = GFunction(r);
+
+    return vc*r_hat + sa*a_hat + g*omega_OI.cross(r_hat) + d_dot;
+
+}
+
+Eigen::Vector3d LVF::RHatDot(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& velocity
+) const {
+    auto r_hat = r_vector.normalized();
+    auto r = r_vector.norm();
+
+    return (Eigen::Matrix3d::Identity() - r_hat*r_hat.transpose())/r * velocity;
+}
+
+Eigen::Vector3d LVF::AHatDot(
+    const Eigen::Vector3d& a_hat,
+    const Eigen::Vector3d& e_hat,
+    const Eigen::Vector3d& o_hat,
+    const Eigen::Vector3d& r_hat,
+    const Eigen::Vector3d& r_hat_dot,
+    const Eigen::Vector3d& omega_OI
+) const {
+    Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+    double theta = clvf::ThetaFromTwoVectors(r_hat, o_hat);
+    auto dahat_drhat = (I - a_hat*a_hat.transpose())/(std::sin(theta) + clvf::kSmallNumber)
+        * (2*o_hat*r_hat.transpose()-r_hat*o_hat.transpose() - (r_hat.transpose()*o_hat)*I);
+
+    auto dahat_dohat = (I - r_hat*r_hat.transpose())*(I - a_hat*a_hat.transpose())/(std::sin(theta) + clvf::kSmallNumber);
+
+    return dahat_drhat*r_hat_dot + dahat_dohat * omega_OI.cross(o_hat);
+}
+
+double LVF::ThetaDot(
+    const Eigen::Vector3d& o_hat,
+    const Eigen::Vector3d& r_hat_dot,
+    const Eigen::Vector3d& e_hat,
+    const Eigen::Vector3d& omega_OI,
+    const Eigen::Vector3d& r_hat,
+    double theta
+) const {
+    return (-o_hat.dot(r_hat_dot) + (-r_hat.transpose()*(omega_OI.cross(o_hat))))/(std::sin(theta) + clvf::kSmallNumber);
+}
+
+double LVF::VFunctionDot(
+    double theta,
+    double r,
+    double theta_dot, 
+    double r_dot
+) const {
+    double dvreldr;
+    auto r_N = RN(r);
+    if (r <= alpha_prime_){
+        dvreldr = v_max_*std::cos(r_N)*final_angle_/alpha_prime_;
+    } else {
+        dvreldr = 0;
+    }
+        
+    auto theta_N = ThetaN(theta);
+    auto dvcdr = -dvreldr*std::cos(theta_N);
+    
+    auto v_rel = VRel(r_N);
+
+    double dvcdtheta;
+
+    if (theta < theta_docking_cone_) {
+        dvcdtheta = v_rel*std::sin(theta_N) * M_PI/(2*theta_docking_cone_);
+    }
+    else {
+        dvcdtheta = 0;
+    }
+                    
+    return dvcdr*r_dot + dvcdtheta*theta_dot;
+}
+
+double LVF::SFunctionDot(double theta, double r, double theta_dot, double r_dot) const {
+    
+    double dvreldr;
+    auto r_N = RN(r);
+    if (r <= alpha_prime_){
+        dvreldr = v_max_*std::cos(r_N)*final_angle_/alpha_prime_;
+    } else {
+        dvreldr = 0;
+    }
+        
+    auto theta_N = ThetaN(theta);
+    auto dvcdr = -dvreldr*std::cos(theta_N);
+    
+    auto v_rel = VRel(r_N);
+    
+    
+    auto dsadr = dvreldr*std::sin(theta_N);
+    
+    double dsadtheta;
+    if (theta < theta_docking_cone_){
+        dsadtheta = v_rel*std::cos(theta_N) * M_PI/(2*theta_docking_cone_);
+    } else {
+        dsadtheta = 0;
+    }
+
+    return dsadr*r_dot + dsadtheta*theta_dot;
+}
+
+Eigen::Vector3d LVF::DesiredAcceleration(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& velocity,
+    const Eigen::Vector3d& o_hat_vector,
+    const Eigen::Vector3d& omega_OI,
+    const Eigen::Vector3d& omega_dot_OI,
+    const Eigen::Vector3d& d_ddot
+) const {
+
+    // Get all of the intermediate values:
+    auto r = r_vector.norm();
+    auto r_hat = r_vector.normalized();
+    auto theta = clvf::ThetaFromTwoVectors(r_vector, o_hat_vector);
+    auto a_hat = AHatVector(r_vector, o_hat_vector);
+
+    auto r_dot = RDot(r_hat, velocity);
+    auto r_hat_dot = RHatDot(r_vector, velocity);
+    auto e_hat = EHatVector(r_vector, o_hat_vector);
+    auto theta_dot = ThetaDot(o_hat_vector, r_hat_dot, e_hat, omega_OI, r_hat, theta);
+
+    auto r_N = RN(r);
+    auto v_rel = VRel(r_N);
+    auto theta_N = ThetaN(theta);
+
+    auto vc = VFunction(v_rel, theta_N);
+    double sa = SFunction(v_rel, theta_N);
+    auto vc_dot = VFunctionDot(theta, r, theta_dot, r_dot);
+
+    auto sa_dot = SFunctionDot(theta, r, theta_dot, r_dot);
+    auto a_hat_dot = AHatDot(a_hat, e_hat, o_hat_vector, r_hat, r_hat_dot, omega_OI);
+    auto g_dot = GFunctionDot(r_dot);
+    auto g = GFunction(r);
+
+    // Compute the final value:
+    return vc_dot*r_hat + vc*r_hat_dot + sa_dot*a_hat + sa*a_hat_dot + 
+        g_dot*omega_OI.cross(r_hat) + g*omega_dot_OI.cross(r_hat) + 
+            g*omega_OI.cross(r_hat_dot) + d_ddot;
+}
     
 } // namespace clvf
