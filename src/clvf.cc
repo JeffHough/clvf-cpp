@@ -372,5 +372,21 @@ Eigen::Vector3d LVF::DesiredAcceleration(
         g_dot*omega_OI.cross(r_hat) + g*omega_dot_OI.cross(r_hat) + 
             g*omega_OI.cross(r_hat_dot) + d_ddot;
 }
+
+double LVF::AccelerationBound(
+    double omega_max, 
+    double omega_and_omega_dot_max,
+    double d_ddot_max
+) const {
+
+
+
+//   N1: dockingPortNorm
+//   N2: rotNorm
+//   N3: w_max for Coriolis stuff
+
+    return 0.724612*(1 + M_PI/(2*theta_docking_cone_))*(v_max_*v_max_*final_angle_/alpha_prime_)+ 2*omega_max*v_max_ + d_ddot_max + omega_and_omega_dot_max*alpha_prime_;
+
+}
     
 } // namespace clvf

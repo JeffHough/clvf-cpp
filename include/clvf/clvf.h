@@ -110,7 +110,9 @@ class CLVF {
 
     double AccelerationBound(
       double omega_max, 
-      double omega_and_omega_dot_max) const;
+      double omega_and_omega_dot_max,
+      double d_ddot_max
+    ) const;
 };
 
 // Class for standard Lyapunov Vector Field:
