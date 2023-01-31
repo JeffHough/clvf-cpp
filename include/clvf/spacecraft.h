@@ -12,9 +12,12 @@ class Spacecraft {
     const Eigen::Matrix3d inertia_inverse_;
     const double mass_;
 
+    // The control parameter for the spacecraft control:
+    const double beta_;
+
   public:
     Spacecraft() = delete;
-    Spacecraft(const Eigen::Matrix3d& inertia, double mass);
+    Spacecraft(const Eigen::Matrix3d& inertia, double mass, double beta);
 
     // Euler dynamics of the spacecraft:
     Eigen::Vector3d OmegaDot(
@@ -31,6 +34,13 @@ class Spacecraft {
     Eigen::Matrix3d RotationMatrixDot(
       const Eigen::Matrix3d& C,
       const Eigen::Vector3d& w
+    ) const;
+
+    // The controller:
+    Eigen::Vector3d Control(
+      const Eigen::Vector3d& desired_speed,
+      const Eigen::Vector3d& actual_speed,
+      const Eigen::Vector3d& desired_acceleration
     ) const;
   };
 

@@ -181,8 +181,9 @@ Eigen::Vector3d CLVF::DesiredAcceleration(
 }
 
 double CLVF::AccelerationBound(
-    double omega_max,
-    double omega_and_omega_dot_max
+    double omega_max, 
+    double omega_and_omega_dot_max,
+    double d_ddot_max
 ) const {
     double tmp0 = std::pow(0.7698*kc_*kc_/b_ + ka_*ka_/alpha_, 2.0);
     double factor = 2.0/(3*std::sqrt(3));
@@ -192,6 +193,16 @@ double CLVF::AccelerationBound(
     double tmp3 = 2.385*ka_*omega_max + omega_and_omega_dot_max*alpha_;
 
     return tmp2 + tmp3;
+}
+
+bool CLVF::InSwitchRange(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_vector_hat
+) const {
+    double r = r_vector.norm();
+    double theta = clvf::ThetaFromTwoVectors(r_vector, o_vector_hat);
+
+    return ((std::abs(r - alpha_) < radius_error_before_changing_to_LVF_) && (std::abs(theta) < theta_error_before_changing_to_LVF_));
 }
 
 // LVF Library:

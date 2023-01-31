@@ -2,8 +2,8 @@
 #include "clvf/utils.h"
 
 namespace clvf {
-Spacecraft::Spacecraft(const Eigen::Matrix3d& inertia, double mass)
-: inertia_{inertia}, mass_{mass}, inertia_inverse_{inertia.inverse()}{};
+Spacecraft::Spacecraft(const Eigen::Matrix3d& inertia, double mass, double beta)
+: inertia_{inertia}, mass_{mass}, inertia_inverse_{inertia.inverse()}, beta_{beta}{};
 
 Eigen::Vector3d Spacecraft::OmegaDot(
   const Eigen::Vector3d& omega, 

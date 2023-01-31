@@ -17,8 +17,9 @@ class CLVF {
     const double b_;
     const double alpha_;
 
-    // Parameter of the controller:
-    const double beta_;
+    // Distance away from the setpoint until we change from the CLVF:
+    const double radius_error_before_changing_to_LVF_;
+    const double theta_error_before_changing_to_LVF_;
 
     // The circulation component:
     double SFunction(
@@ -89,8 +90,16 @@ class CLVF {
       double ka,
       double b,
       double alpha,
-      double beta
-    ) : kc_{kc}, ka_{ka}, b_{b}, alpha_{alpha}, beta_{beta}{};
+      double radius_error_before_changing_to_LVF,
+      double theta_error_before_changing_to_LVF
+    ) : 
+    kc_{kc}, 
+    ka_{ka}, 
+    b_{b}, 
+    alpha_{alpha}, 
+    radius_error_before_changing_to_LVF_{radius_error_before_changing_to_LVF}, 
+    theta_error_before_changing_to_LVF_{theta_error_before_changing_to_LVF}
+    {};
 
     Eigen::Vector3d DesiredVelocity(
       const Eigen::Vector3d& r_vector,
@@ -113,6 +122,11 @@ class CLVF {
       double omega_and_omega_dot_max,
       double d_ddot_max
     ) const;
+
+    bool InSwitchRange(
+    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& o_vector_hat
+    ) const;
 };
 
 // Class for standard Lyapunov Vector Field:
@@ -122,9 +136,6 @@ class LVF {
     const double final_angle_;
     const double alpha_prime_;
     const double theta_docking_cone_;
-
-    // Parameter of the controller:
-    const double beta_;
 
     // Various helper functions for the LVF:
     double ThetaN(
@@ -225,14 +236,12 @@ class LVF {
       double v_max,
       double frac,
       double alpha_prime,
-      double theta_docking_cone,
-      double beta
+      double theta_docking_cone
     ):
     v_max_{v_max}, 
     final_angle_{frac*M_PI}, 
     alpha_prime_{alpha_prime}, 
-    theta_docking_cone_{theta_docking_cone},
-    beta_{beta}{};
+    theta_docking_cone_{theta_docking_cone}{};
 
     Eigen::Vector3d DesiredVelocity(
       const Eigen::Vector3d& r_vector,
