@@ -29,4 +29,12 @@ Eigen::Matrix3d Spacecraft::RotationMatrixDot(
   return -clvf::Skew(w)*C;
 }
 
+Eigen::Vector3d Spacecraft::Control(
+  const Eigen::Vector3d& desired_speed,
+  const Eigen::Vector3d& actual_speed,
+  const Eigen::Vector3d& desired_acceleration
+) const {
+  return mass_*(beta_ * (desired_speed - actual_speed) + desired_acceleration);
+}
+
 }
