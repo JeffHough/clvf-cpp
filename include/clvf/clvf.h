@@ -137,6 +137,9 @@ class LVF {
     const double alpha_prime_;
     const double theta_docking_cone_;
 
+    // The size of the "end" region, deciding when the simulation should end:
+    const double end_region_radius_;
+
     // Various helper functions for the LVF:
     double ThetaN(
       double theta
@@ -146,14 +149,14 @@ class LVF {
       double r
     ) const;
 
-    double VRel(
+    inline double VRel(
       double r_N
     ) const {
       return v_max_ * std::sin(r_N);
     }
 
     // The circulation component:
-    double SFunction(
+    inline double SFunction(
       double v_rel,
       double theta_N
     ) const {
@@ -161,7 +164,7 @@ class LVF {
     }
 
     // The contraction component:
-    double VFunction(
+    inline double VFunction(
       double v_rel,
       double theta_N
     ) const {
@@ -204,7 +207,7 @@ class LVF {
       const Eigen::Vector3d& omega_OI
     ) const;
 
-    double RDot(
+    inline double RDot(
       const Eigen::Vector3d& r_hat,
       const Eigen::Vector3d& velocity
     ) const {
@@ -236,12 +239,13 @@ class LVF {
       double v_max,
       double frac,
       double alpha_prime,
-      double theta_docking_cone
+      double theta_docking_cone,
+      double end_region_radius
     ):
     v_max_{v_max}, 
     final_angle_{frac*M_PI}, 
     alpha_prime_{alpha_prime}, 
-    theta_docking_cone_{theta_docking_cone}{};
+    theta_docking_cone_{theta_docking_cone}, end_region_radius_{end_region_radius}{};
 
     Eigen::Vector3d DesiredVelocity(
       const Eigen::Vector3d& r_vector,
@@ -263,6 +267,13 @@ class LVF {
     double omega_max, 
     double omega_and_omega_dot_max,
     double d_ddot_max) const;
+
+    inline bool InEndRange(
+      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& d_vector
+    ) const {
+      return (r_vector-d_vector).norm() < end_region_radius_ ;
+    }
 };
 
 }

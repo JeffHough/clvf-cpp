@@ -15,5 +15,6 @@ int main(){
   clvf::Spacecraft chaser(chaser_inertia, chaser_mass, beta);
 
   // Set up the CLVF and LVF parameters:
+  
 
 }

@@ -15,6 +15,9 @@ class Spacecraft {
     // The control parameter for the spacecraft control:
     const double beta_;
 
+    // Where is the docking port in the body frame?
+    const Eigen::Vector3d d_vector_;
+
   public:
     Spacecraft() = delete;
     Spacecraft(const Eigen::Matrix3d& inertia, double mass, double beta);
@@ -42,6 +45,16 @@ class Spacecraft {
       const Eigen::Vector3d& actual_speed,
       const Eigen::Vector3d& desired_acceleration
     ) const;
+
+    // Convert orbital elements to initial position and velocity:
+    static std::pair<Eigen::Vector3d, Eigen::Vector3d> OrbitalElementsToPosVel(
+      double semi_major_axis,
+      double eccentricity,
+      double inclination,
+      double RAAN,
+      double argument_of_latitude /*?*/,
+      double true_anomaly
+    );
   };
 
 }

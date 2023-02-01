@@ -40,6 +40,17 @@ inline double ThetaFromTwoVectors(
     return std::acos(a.normalized().dot(b.normalized()));
 }
 
+// An integrator:
+template <int N, int M>
+Eigen::Matrix<double, N, M> EulerIntegrate(
+    const Eigen::Matrix<double, N, M>& derivative, 
+    const Eigen::Matrix<double, N, M>& previous_value,
+    double dt
+){
+    // Just does Euler interation (for now)
+    return previous_value + derivative*dt;
+}
+
 }
 
 #endif
