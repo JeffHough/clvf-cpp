@@ -4,6 +4,7 @@
 #include "clvf/spacecraft.h"
 #include "clvf/clvf.h"
 #include <fstream>
+#include "clvf/utils.h"
 
 namespace clvf {
 

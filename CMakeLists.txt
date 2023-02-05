@@ -10,6 +10,7 @@ add_library(
   STATIC
   src/clvf.cc
   src/spacecraft.cc
+  src/simulation.cc
 )
 
 # link to eigen:
