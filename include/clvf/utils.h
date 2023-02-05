@@ -63,7 +63,7 @@ Eigen::Matrix<double, N, M> EulerIntegrate(
 }
 
 // The Rotation matrix for the x-direction:
-Eigen::Matrix3d C1(double x){
+inline Eigen::Matrix3d C1(double x){
     double cx = std::cos(x);
     double sx = std::sin(x);
     return Eigen::Matrix3d({
@@ -73,7 +73,8 @@ Eigen::Matrix3d C1(double x){
     });
 }
 
-Eigen::Matrix3d C2(double y){
+// The Rotation matrix for the y-direction:
+inline Eigen::Matrix3d C2(double y){
     double cy = std::cos(y);
     double sy = std::sin(y);
     return Eigen::Matrix3d({
@@ -83,7 +84,8 @@ Eigen::Matrix3d C2(double y){
     });
 }
 
-Eigen::Matrix3d C3(double z){
+// The Rotation matrix for the z-direction:
+inline Eigen::Matrix3d C3(double z){
     double cz = std::cos(z);
     double sz = std::sin(z);
     return Eigen::Matrix3d({
@@ -92,10 +94,6 @@ Eigen::Matrix3d C3(double z){
         {0, 0, 1}
     });
 }
-
-// Rotation matrix for the y-direction:
-
-// Rotation matrix for the z-direction:
 
 }
 

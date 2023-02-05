@@ -1,20 +1,103 @@
 #include "clvf/clvf.h"
 #include "clvf/spacecraft.h"
+#include "clvf/utils.h"
+#include "clvf/simulation.h"
 
 int main(){
   // Set up a control parameter:
   double beta = 5.0; // [rads/s]
+
   // Set up a target spacecraft:
   Eigen::Matrix3d target_inertia = Eigen::Vector3d({3.0, 5.0, 7.0}).asDiagonal();
   double target_mass = 1.0;
-  clvf::Spacecraft target(target_inertia, target_mass, beta);
+  Eigen::Vector3d o_hat_B = {1.0, 0., 0.};
+  Eigen::Vector3d d_vector_B = {1., 0., 0.};
+  double angle_of_acceptance = 30 * clvf::kD2R;
+  clvf::Spacecraft target(target_inertia, target_mass, beta, o_hat_B, d_vector_B, angle_of_acceptance);
 
-  // Set up a chaser spacecraft:
-  Eigen::Matrix3d chaser_inertia = Eigen::Matrix3d::Identity();
-  double chaser_mass = 1.0;
-  clvf::Spacecraft chaser(chaser_inertia, chaser_mass, beta);
+  // For now, just make the chaser identical. They do different things anyways 
+  // (chaser is pure translation, target is mostly rotation).
+  clvf::Spacecraft chaser(target_inertia, target_mass, beta, o_hat_B, d_vector_B, angle_of_acceptance);
 
-  // Set up the CLVF and LVF parameters:
+  // Set up the LVF parameters:
+  double v_max = 1.0;
+  double frac = 0.99;
+  double alpha_prime = 5.0;
+  double end_region_radius = 0.01;
   
+  clvf::LVF lvf_guidance(
+    v_max, 
+    frac, 
+    alpha_prime, 
+    target.AngleOfAcceptance(), 
+    end_region_radius
+  );
 
+  // Set up the CLVF parameters:
+  double kc = 1.0;
+  double ka = 1.0;
+  double b = 2.0;
+  double radius_error_before_changing_to_LVF = 0.01;
+  double theta_error_before_changing_to_LVF = 0.01;
+
+  clvf::CLVF clvf_guidance(
+    kc, 
+    ka, 
+    b, 
+    alpha_prime, 
+    target.OHatB(), 
+    target.DVectorB(), 
+    radius_error_before_changing_to_LVF,
+    theta_error_before_changing_to_LVF
+  );
+
+  // Instantiate the simulation:
+  double dt = 0.01;
+  int max_steps_in_switch_region = static_cast<int>(5.0 / dt);
+  int max_steps_in_end_region = static_cast<int>(5.0 / dt);
+  double max_time = 50000; // seconds of simulation time.
+
+  clvf::Simulation sim(
+    clvf_guidance, 
+    lvf_guidance,
+    target,
+    chaser,
+    dt,
+    max_steps_in_switch_region,
+    max_steps_in_end_region,
+    max_time
+  );
+
+  // Run a simulation with particular initial conditions:
+  clvf::SimulationData initial_data{};
+
+  // Set all of the independent simulation data:
+  double semi_major_axis = 8000; //km
+  double eccentricity = 0.01;
+  double inclination = 0;
+  double argument_of_perigee = 0;
+  double RAAN = 0.0;
+  double true_anomaly = 0.0;
+
+  auto pos_vel = target.OrbitalElementsToPosVel(
+    semi_major_axis,
+    eccentricity,
+    inclination,
+    RAAN,
+    argument_of_perigee,
+    true_anomaly
+  );
+
+  initial_data.target_orbital_position = pos_vel.first;
+  initial_data.target_orbital_velocity = pos_vel.second;
+  initial_data.target_omega = {10.0*clvf::kD2R, 0.0, 0.0};
+  initial_data.target_C_BI = Eigen::Matrix3d::Identity();  
+  initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.01, 0.03}); // km;
+  initial_data.chaser_orbital_velocity = initial_data.target_orbital_velocity;
+  initial_data.simulation_complete = false;
+  initial_data.in_CLVF = true;
+
+  sim.Run(initial_data, "test.csv");
+
+  return 0;
 }
