@@ -139,4 +139,232 @@ void Simulation::Run(
   data_stream.close();
 }
 
+void Simulation::LogHeaders(std::ofstream& data_stream){
+  // TIME:
+  data_stream << "time,";
+
+  // Target oribtal position:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_orbital_position_" << i <<",";
+  }
+
+  // Target oribtal velocity:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_orbital_velocity_" << i <<",";
+  }
+
+  // Target orbital acceleration:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_orbital_acceleration_" << i <<",";
+  }
+
+  // target omega:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_omega_OI_" << i <<",";
+  }  
+  
+  // target_omega_dot:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_omega_OI_dot_" << i <<",";
+  }  
+
+  // target C_BI:
+  for (int i = 0 ; i < 3 ; ++i){
+    for (int j = 0 ; j < 3 ; ++j){
+      data_stream << "target_C_BI_" << i << j << ",";
+    }
+  }
+
+  // target C_BI_dot:
+  for (int i = 0 ; i < 3 ; ++i){
+    for (int j = 0 ; j < 3 ; ++j){
+      data_stream << "target_C_BI_dot_" << i << j << ",";
+    }
+  }
+
+  // Chaser oribtal position:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_orbital_position_" << i <<",";
+  }
+
+  // Chaser oribtal velocity:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_orbital_velocity_" << i <<",";
+  }
+
+  // Chaser orbital acceleration:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_orbital_acceleration_" << i <<",";
+  }
+
+  // Chaser relative position:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_relative_position_" << i <<",";
+  }
+
+  // Chaser relative velocity:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_relative_velocity_" << i <<",";
+  }
+
+  // target_d_vector_I:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_d_vector_I_" << i <<",";
+  }
+
+  // target_d_dot_vector_I:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_d_dot_vector_I_" << i <<",";
+  }
+
+  // target_d_ddot_vector_I:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_d_ddot_vector_I_" << i <<",";
+  }
+
+  // target_o_hat_vector_I_CLVF:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_o_hat_vector_I_CLVF_" << i <<",";
+  }
+  
+  // target_o_hat_vector_I_LVF:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_o_hat_vector_I_LVF_" << i <<",";
+  }
+
+  // desired_speed
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "desired_speed_" << i <<",";
+  }
+
+  // desired_acceleration:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "desired_acceleration_" << i <<",";
+  }
+
+  // control_vector:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "control_vector_" << i <<",";
+  }
+
+  data_stream << "simulation_complete,";
+  data_stream << "steps_in_switch_region,";
+  data_stream << "steps_in_end_region,";
+  data_stream << "in_CLVF\n";
+}
+
+void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_data){
+  // TIME:
+  data_stream << sim_data.time << ",";
+
+  // Target oribtal position:
+  for (const auto& num : sim_data.target_orbital_position){
+    data_stream << num <<",";
+  }
+
+  // Target oribtal velocity:
+  for (const auto& num : sim_data.target_orbital_velocity){
+    data_stream << num <<",";
+  }
+
+  // Target orbital acceleration:
+  for (const auto& num : sim_data.target_orbital_acceleration){
+    data_stream << num <<",";
+  }
+
+  // target omega:
+  for (const auto& num : sim_data.target_omega){
+    data_stream << num <<",";
+  }  
+  
+  // target_omega_dot:
+  for (const auto& num : sim_data.target_omega_dot_OI){
+    data_stream << num <<",";
+  }
+
+  // target C_BI:
+  for (int i = 0 ; i < 3 ; ++i){
+    for (int j = 0 ; j < 3 ; ++j){
+      data_stream << sim_data.target_C_BI(i,j) << ",";
+    }
+  }
+
+  // target C_BI_dot:
+  for (int i = 0 ; i < 3 ; ++i){
+    for (int j = 0 ; j < 3 ; ++j){
+      data_stream << sim_data.target_C_BI_dot(i,j) << ",";
+    }
+  }
+
+  // Chaser oribtal position:
+  for (const auto& num : sim_data.chaser_orbital_position){
+    data_stream << num <<",";
+  }
+
+  // Chaser oribtal velocity:
+  for (const auto& num : sim_data.chaser_orbital_velocity){
+    data_stream << num <<",";
+  }
+
+  // Chaser orbital acceleration:
+  for (const auto& num : sim_data.chaser_orbital_acceleration){
+    data_stream << num <<",";
+  }
+
+  // Chaser relative position:
+  for (const auto& num : sim_data.chaser_relative_position){
+    data_stream << num <<",";
+  }
+
+  // Chaser relative velocity:
+  for (const auto& num : sim_data.chaser_relative_velocity){
+    data_stream << num <<",";
+  }
+
+  // target_d_vector_I:
+  for (const auto& num : sim_data.target_d_vector_I){
+    data_stream << num <<",";
+  }
+
+  // target_d_dot_vector_I:
+  for (const auto& num : sim_data.target_d_dot_I){
+    data_stream << num <<",";
+  }
+
+  // target_d_ddot_vector_I:
+  for (const auto& num : sim_data.target_d_ddot_I){
+    data_stream << num <<",";
+  }
+
+  // target_o_hat_vector_I_CLVF:
+  for (const auto& num : sim_data.target_o_hat_vector_I_CLVF){
+    data_stream << num <<",";
+  }
+  
+  // target_o_hat_vector_I_LVF:
+  for (const auto& num : sim_data.target_o_hat_vector_I_LVF){
+    data_stream << num <<",";
+  }
+
+  // desired_speed
+  for (const auto& num : sim_data.desired_speed){
+    data_stream << num <<",";
+  }
+
+  // desired_acceleration:
+  for (const auto& num : sim_data.desired_acceleration){
+    data_stream << num <<",";
+  }
+
+  // control_vector:
+  for (const auto& num : sim_data.control_vector){
+    data_stream << num <<",";
+  }
+
+  data_stream << sim_data.simulation_complete << ",";
+  data_stream << sim_data.steps_in_switch_region << ",";
+  data_stream << sim_data.steps_in_end_region << ",";
+  data_stream << sim_data.in_CLVF << "\n";
+}
+
 }
