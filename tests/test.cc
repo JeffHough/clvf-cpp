@@ -5,7 +5,7 @@
 
 int main(){
   // Set up a control parameter:
-  double beta = 5.0; // [rads/s]
+  double beta = 200.0; // [rads/s]
 
   // Set up a target spacecraft:
   Eigen::Matrix3d target_inertia = Eigen::Vector3d({3.0, 5.0, 7.0}).asDiagonal();
@@ -34,9 +34,9 @@ int main(){
   );
 
   // Set up the CLVF parameters:
-  double kc = 1.0;
+  double kc = 5.0;
   double ka = 1.0;
-  double b = 2.0;
+  double b = 15.0;
   double radius_error_before_changing_to_LVF = 0.01;
   double theta_error_before_changing_to_LVF = 0.01;
 
@@ -55,7 +55,7 @@ int main(){
   double dt = 0.01;
   int max_steps_in_switch_region = static_cast<int>(5.0 / dt);
   int max_steps_in_end_region = static_cast<int>(5.0 / dt);
-  double max_time = 50000; // seconds of simulation time.
+  double max_time = 5000.0; // seconds of simulation time.
 
   clvf::Simulation sim(
     clvf_guidance, 
@@ -90,9 +90,9 @@ int main(){
 
   initial_data.target_orbital_position = pos_vel.first;
   initial_data.target_orbital_velocity = pos_vel.second;
-  initial_data.target_omega = {10.0*clvf::kD2R, 0.0, 0.0};
+  initial_data.target_omega = {0.0*clvf::kD2R, 0.0, 0.0};
   initial_data.target_C_BI = Eigen::Matrix3d::Identity();  
-  initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.01, 0.03}); // km;
+  initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.03, 0.01}); // km;
   initial_data.chaser_orbital_velocity = initial_data.target_orbital_velocity;
   initial_data.simulation_complete = false;
   initial_data.in_CLVF = true;

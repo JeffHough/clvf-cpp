@@ -21,9 +21,6 @@ class Spacecraft {
     // The control parameter for the spacecraft control:
     const double beta_;
 
-    // Where is the docking port in the body frame?
-    const Eigen::Vector3d d_vector_;
-
   public:
     Spacecraft() = delete;
     Spacecraft(
@@ -59,10 +56,10 @@ class Spacecraft {
     ) const;
 
     // Getter function for the D-Vector:
-    const Eigen::Vector3d& DVectorB() const {return d_vector_;}
+    Eigen::Vector3d DVectorB() const {return docking_port_B_;}
 
     // Getter for the O-hat-B vector:
-    const Eigen::Vector3d& OHatB() const {return o_hat_B_;}
+    Eigen::Vector3d OHatB() const {return o_hat_B_;}
 
     // Getter for the angle of acceptance:
     double AngleOfAcceptance() const {return angle_of_acceptance_;}

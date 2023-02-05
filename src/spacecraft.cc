@@ -32,7 +32,7 @@ Eigen::Vector3d Spacecraft::RInertialDDot(
     double r_magnitude_squared = r_inertial.dot(r_inertial);
 
     // Acceleration due to gravity and external force:
-    return (-mu * r_inertial/r_magnitude_squared + u_inertial/mass_);
+    return (-mu * r_inertial.normalized()/r_magnitude_squared + u_inertial/mass_);
 }
 
 Eigen::Matrix3d Spacecraft::RotationMatrixDot(

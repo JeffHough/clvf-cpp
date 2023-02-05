@@ -7,8 +7,8 @@ namespace clvf {
 SimulationData Simulation::Step(
   const SimulationData& sim_data_k
 ) const {
-  // The data we will give OUT:
-  SimulationData data_out;
+  // Hold some memory to prevent resetting back to CLVF:
+  SimulationData data_out = sim_data_k;
 
   // Check if we should run the CLVF:
   auto should_run_CLVF = (sim_data_k.steps_in_switch_region < max_steps_in_switch_region_);
@@ -27,7 +27,7 @@ SimulationData Simulation::Step(
       sim_data_k.chaser_relative_position,
       sim_data_k.target_o_hat_vector_I_CLVF,
       sim_data_k.target_omega,
-      sim_data_k.target_d_vector_I
+      sim_data_k.target_d_dot_I
     );
 
     // Compute the desired acceleration:

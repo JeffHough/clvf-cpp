@@ -13,7 +13,7 @@ double CLVF::SFunction(double r, double theta) const {
 
 double CLVF::VFunction(double r, double theta) const {
     if (std::abs(r - alpha_) < b_){
-        return clvf::Sign(r - alpha_)  *  (-kc_/(b_*b_)*(r-alpha_)*(r-alpha_)) - 2*kc_/b_*(r-alpha_);
+        return clvf::Sign(r - alpha_)  *  (kc_/(b_*b_)*(r-alpha_)*(r-alpha_)) - 2*kc_/b_*(r-alpha_);
     }
     return kc_ * clvf::Sign(alpha_ - r);
 }
@@ -143,7 +143,7 @@ double CLVF::VFunctionDot(double r, double r_dot) const {
     return kc_ * clvf::Sign(alpha_ - r);
     */
     if (std::abs(r - alpha_) < b_){
-        return clvf::Sign(r - alpha_)  *  2*(-kc_/(b_*b_)*(r-alpha_)) - 2*kc_/b_;
+        return clvf::Sign(r - alpha_)  *  2*(kc_/(b_*b_)*(r-alpha_)) - 2*kc_/b_;
     }
     return 0.0;  
 }
@@ -211,10 +211,12 @@ std::pair<Eigen::Vector3d, double> CLVF::OHatAndAlphaFromLVFValues(
     const Eigen::Vector3d& d_vector_LVF
 ) {
     // Get the full vector:
-    auto alpha_times_o_hat = d_vector_LVF + o_hat_B_LVF.normalized()*alhpa_LVF;
+    Eigen::Vector3d alpha_times_o_hat = d_vector_LVF + o_hat_B_LVF.normalized()*alhpa_LVF;
 
     // Extract the size and direction:
-    return std::make_pair(alpha_times_o_hat.normalized(), alpha_times_o_hat.norm());
+    Eigen::Vector3d unit_vector = alpha_times_o_hat.normalized();
+    double alpha_CLVF = alpha_times_o_hat.norm();
+    return std::make_pair(unit_vector, alpha_CLVF);
 }
 
 // LVF Library:
