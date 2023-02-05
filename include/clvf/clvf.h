@@ -264,7 +264,7 @@ class LVF {
     theta_docking_cone_{theta_docking_cone}, end_region_radius_{end_region_radius}{};
 
     Eigen::Vector3d DesiredVelocity(
-      const Eigen::Vector3d& r_vector,
+      const Eigen::Vector3d& rd_vector,
       const Eigen::Vector3d& o_hat_vector,
       const Eigen::Vector3d& omega_OI,
       const Eigen::Vector3d& d_dot

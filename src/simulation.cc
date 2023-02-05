@@ -53,7 +53,7 @@ SimulationData Simulation::Step(
 
     // Compute the desired speed and acceleration according to the LVF:
     data_out.desired_speed = lvf_.DesiredVelocity(
-      sim_data_k.chaser_relative_position,
+      sim_data_k.chaser_relative_position-sim_data_k.target_d_vector_I,
       sim_data_k.target_o_hat_vector_I_LVF,
       sim_data_k.target_omega,
       sim_data_k.target_d_dot_I

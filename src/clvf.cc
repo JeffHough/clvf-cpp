@@ -238,17 +238,17 @@ Eigen::Vector3d LVF::AHatVector(
 }
 
 Eigen::Vector3d LVF::DesiredVelocity(
-    const Eigen::Vector3d& r_vector,
+    const Eigen::Vector3d& rd_vector,
     const Eigen::Vector3d& o_hat_vector,
     const Eigen::Vector3d& omega_OI,
     const Eigen::Vector3d& d_dot
 ) const {
     
-    double r = r_vector.norm();
-    Eigen::Vector3d r_hat = r_vector/r;
-    double theta = clvf::ThetaFromTwoVectors(r_vector, o_hat_vector);
+    double r = rd_vector.norm();
+    Eigen::Vector3d r_hat = rd_vector/r;
+    double theta = clvf::ThetaFromTwoVectors(rd_vector, o_hat_vector);
     
-    Eigen::Vector3d a_hat = AHatVector(r_vector, o_hat_vector);
+    Eigen::Vector3d a_hat = AHatVector(rd_vector, o_hat_vector);
 
     auto theta_N = ThetaN(theta);
     auto r_N = RN(r);
