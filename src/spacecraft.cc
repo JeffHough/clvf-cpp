@@ -50,4 +50,39 @@ Eigen::Vector3d Spacecraft::Control(
   return mass_*(beta_ * (desired_speed - actual_speed) + desired_acceleration);
 }
 
+// Convert orbital elements to initial position and velocity:
+std::pair<Eigen::Vector3d, Eigen::Vector3d> Spacecraft::OrbitalElementsToPosVel(
+  double semi_major_axis,
+  double eccentricity,
+  double inclination,
+  double RAAN,
+  double argument_of_perigee,
+  double true_anomaly
+) {
+    // First, getting distance "r" at this instant:
+    double r = semi_major_axis*(1.0 - eccentricity*eccentricity)/(1+eccentricity*std::cos(true_anomaly));
+
+    // Next, get the perifocal frame coordinates:
+    Eigen::Vector3d rP({r*std::cos(true_anomaly), r*std::sin(true_anomaly), 0});
+              
+    // Next, get the rotation matrix from perifocal into ECI:
+    Eigen::Matrix3d C_PI = clvf::C3(argument_of_perigee)*clvf::C1(inclination)*clvf::C3(RAAN);
+    Eigen::Matrix3d C_IP = C_PI.transpose();
+        
+    // Get rI
+    auto rI = C_IP*rP;
+        
+    // Get the semi-latus rectum (p)
+    auto p = semi_major_axis*(1-eccentricity*eccentricity);
+        
+    // Get perifocal frame velocity:
+    Eigen::Vector3d vP ({-sqrt(clvf::kMu/p)*std::sin(true_anomaly), sqrt(clvf::kMu/p)*(eccentricity + std::cos(true_anomaly)), 0 });
+
+    // Get the inertial velocity:
+    auto vI = C_IP*vP;
+
+    // Return the position velocity pair:
+    return std::make_pair(rI, vI);
+}
+
 }

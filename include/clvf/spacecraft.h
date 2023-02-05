@@ -76,7 +76,7 @@ class Spacecraft {
       double eccentricity,
       double inclination,
       double RAAN,
-      double argument_of_latitude /*?*/,
+      double argument_of_perigee,
       double true_anomaly
     );
   };
