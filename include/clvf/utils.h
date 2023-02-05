@@ -95,6 +95,12 @@ inline Eigen::Matrix3d C3(double z){
     });
 }
 
+inline Eigen::Matrix3d NormalizeRotationMatrix(const Eigen::Matrix3d& C){
+    Eigen::Quaterniond q_temp(C);
+    q_temp.normalize();
+    return q_temp.matrix();
+}
+
 }
 
 #endif

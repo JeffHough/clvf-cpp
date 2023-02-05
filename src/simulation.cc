@@ -79,18 +79,18 @@ SimulationData Simulation::Step(
 
   // Update chaser orbit velocity and position:
   data_out.chaser_orbital_velocity = clvf::EulerIntegrate<3,1>(sim_data_k.chaser_orbital_acceleration, sim_data_k.chaser_orbital_velocity, dt_);
-  data_out.chaser_orbital_position = clvf::EulerIntegrate<3,1>(sim_data_k.chaser_orbital_velocity, sim_data_k.chaser_orbital_position, dt_);
+  data_out.chaser_orbital_position = clvf::EulerIntegrate<3,1>(data_out.chaser_orbital_velocity, sim_data_k.chaser_orbital_position, dt_);
 
   // Update for the target orbit dynamics:
   data_out.target_orbital_velocity = clvf::EulerIntegrate<3,1>(sim_data_k.target_orbital_acceleration, sim_data_k.target_orbital_velocity, dt_);
-  data_out.target_orbital_position = clvf::EulerIntegrate<3,1>(sim_data_k.target_orbital_velocity, sim_data_k.target_orbital_position, dt_);
+  data_out.target_orbital_position = clvf::EulerIntegrate<3,1>(data_out.target_orbital_velocity, sim_data_k.target_orbital_position, dt_);
 
   // Integrate to get the new target omega:
   data_out.target_omega = clvf::EulerIntegrate(sim_data_k.target_omega_dot_OI, sim_data_k.target_omega, dt_);
 
   // Update the target rotation matrix:
   // TODO - SHOULD DO THIS IN TERMS OF QUATERNIONS
-  data_out.target_C_BI = clvf::EulerIntegrate<3,3>(sim_data_k.target_C_BI_dot, sim_data_k.target_C_BI, dt_);
+  data_out.target_C_BI = clvf::NormalizeRotationMatrix(clvf::EulerIntegrate<3,3>(sim_data_k.target_C_BI_dot, sim_data_k.target_C_BI, dt_));
 
   // Check if the simulation should end:
   auto should_end = ((data_out.steps_in_end_region >= max_steps_in_end_region_) || (data_out.time >= max_time_));
