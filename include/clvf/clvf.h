@@ -2,6 +2,7 @@
 #define CLVF_CLVF_H_
 
 #include <Eigen/Dense>
+#include <tuple>
 
 namespace clvf {
 
@@ -10,12 +11,12 @@ constexpr double kSmallNumber = 1e-7;
 // Guidance law based on CLVFs:
 class CLVF {
   private:
-
     // Parameters of the vector field:
     const double kc_;
     const double ka_;
     const double b_;
     const double alpha_;
+    const Eigen::Vector3d o_hat_B_;
 
     // Distance away from the setpoint until we change from the CLVF:
     const double radius_error_before_changing_to_LVF_;
@@ -89,14 +90,17 @@ class CLVF {
       double kc,
       double ka,
       double b,
-      double alpha,
+      double alpha_LVF,
+      const Eigen::Vector3d& o_hat_B_LVF,
+      const Eigen::Vector3d& d_vector_B,
       double radius_error_before_changing_to_LVF,
       double theta_error_before_changing_to_LVF
     ) : 
     kc_{kc}, 
     ka_{ka}, 
     b_{b}, 
-    alpha_{alpha}, 
+    alpha_{OHatAndAlphaFromLVFValues(o_hat_B_LVF, alpha_LVF, d_vector_B).second}, 
+    o_hat_B_{OHatAndAlphaFromLVFValues(o_hat_B_LVF, alpha_LVF, d_vector_B).first},
     radius_error_before_changing_to_LVF_{radius_error_before_changing_to_LVF}, 
     theta_error_before_changing_to_LVF_{theta_error_before_changing_to_LVF}
     {};
@@ -127,6 +131,18 @@ class CLVF {
     const Eigen::Vector3d& r_vector,
     const Eigen::Vector3d& o_vector_hat
     ) const;
+
+    // Convenience function - computes the O_hat and Alpha values
+    // given the spacecraft/LVF values.
+    // See page 71 of Jeff Hough's Thesis.
+    static std::pair<Eigen::Vector3d, double> OHatAndAlphaFromLVFValues(
+      const Eigen::Vector3d& o_hat_B_LVF,
+      double alhpa_LVF,
+      const Eigen::Vector3d& d_vector_LVF
+    );
+
+    // Basic getter functions for some constant vectors:
+    const Eigen::Vector3d& OHatB() const {return o_hat_B_;}
 };
 
 // Class for standard Lyapunov Vector Field:

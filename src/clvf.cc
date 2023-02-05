@@ -205,6 +205,18 @@ bool CLVF::InSwitchRange(
     return ((std::abs(r - alpha_) < radius_error_before_changing_to_LVF_) && (std::abs(theta) < theta_error_before_changing_to_LVF_));
 }
 
+std::pair<Eigen::Vector3d, double> CLVF::OHatAndAlphaFromLVFValues(
+    const Eigen::Vector3d& o_hat_B_LVF,
+    double alhpa_LVF,
+    const Eigen::Vector3d& d_vector_LVF
+) {
+    // Get the full vector:
+    auto alpha_times_o_hat = d_vector_LVF + o_hat_B_LVF.normalized()*alhpa_LVF;
+
+    // Extract the size and direction:
+    return std::make_pair(alpha_times_o_hat.normalized(), alpha_times_o_hat.norm());
+}
+
 // LVF Library:
 double LVF::ThetaN(double theta) const {
     return theta < theta_docking_cone_ ? (theta/theta_docking_cone_)*M_PI/2 : M_PI/2;

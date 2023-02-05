@@ -2,8 +2,19 @@
 #define CLVF_UTILS_H_
 
 #include <Eigen/Dense>
+#include <cmath>
 
 namespace clvf {
+
+// Some constants:
+constexpr double kMu = 3.986*1e5; // [km^3/s^2]
+constexpr double kEarthRadius = 6378.137; // [km]
+
+constexpr double kMetersToKm = 0.001;
+constexpr double kKmToMeters = 1000;
+
+constexpr double kD2R = M_PI/180.0;
+constexpr double kR2D = 1.0/kD2R;
 
 // Skew symmetric matrix of a vector:
 inline Eigen::Matrix3d Skew(

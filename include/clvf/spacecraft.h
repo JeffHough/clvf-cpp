@@ -12,6 +12,12 @@ class Spacecraft {
     const Eigen::Matrix3d inertia_inverse_;
     const double mass_;
 
+    // Assuming this is a target spacecraft, it needs a docking port,
+    // an orientation vector, and a docking cone half-angle of acceptance.
+    const Eigen::Vector3d o_hat_B_;
+    const Eigen::Vector3d docking_port_B_;
+    const double angle_of_acceptance_;
+
     // The control parameter for the spacecraft control:
     const double beta_;
 
@@ -20,7 +26,13 @@ class Spacecraft {
 
   public:
     Spacecraft() = delete;
-    Spacecraft(const Eigen::Matrix3d& inertia, double mass, double beta);
+    Spacecraft(
+      const Eigen::Matrix3d& inertia, 
+      double mass, 
+      double beta,
+      const Eigen::Vector3d& o_hat_B,
+      const Eigen::Vector3d& docking_port_B,
+      double angle_of_acceptance);
 
     // Euler dynamics of the spacecraft:
     Eigen::Vector3d OmegaDot(
@@ -45,6 +57,18 @@ class Spacecraft {
       const Eigen::Vector3d& actual_speed,
       const Eigen::Vector3d& desired_acceleration
     ) const;
+
+    // Getter function for the D-Vector:
+    const Eigen::Vector3d& DVectorB() const {return d_vector_;}
+
+    // Getter for the O-hat-B vector:
+    const Eigen::Vector3d& OHatB() const {return o_hat_B_;}
+
+    // Getter for the angle of acceptance:
+    double AngleOfAcceptance() const {return angle_of_acceptance_;}
+
+    // Getter for the mass:
+    double Mass() const {return mass_;}
 
     // Convert orbital elements to initial position and velocity:
     static std::pair<Eigen::Vector3d, Eigen::Vector3d> OrbitalElementsToPosVel(

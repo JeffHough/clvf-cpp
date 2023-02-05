@@ -7,6 +7,9 @@
 namespace clvf {
 
 struct SimulationData {
+  // Time
+  double time;
+
   // Dynamics data:
   Eigen::Vector3d target_orbital_position;
   Eigen::Vector3d target_orbital_velocity;
@@ -24,8 +27,10 @@ struct SimulationData {
 
   // Simulation complete:
   bool simulation_complete;
-};
 
+  // Are we in the CLVF?
+  bool in_CLVF;
+};
 
 class Simulation {
   private:
@@ -34,6 +39,7 @@ class Simulation {
     LVF lvf_;
     Spacecraft target_spacecraft_;
     Spacecraft chaser_spacecraft_;
+    const double dt_;
 
     // an integer to keep track of how many steps were spent inside the CLVF switch region:
     int steps_in_switch_region_{0};
@@ -53,6 +59,7 @@ class Simulation {
       const LVF& lvf,
       const Spacecraft& target_spacecraft,
       const Spacecraft& chaser_spacecraft,
+      double dt,
       int max_steps_in_switch_region,
       int max_steps_in_end_region
     )
@@ -61,6 +68,7 @@ class Simulation {
     lvf_{lvf},
     target_spacecraft_{target_spacecraft},
     chaser_spacecraft_{chaser_spacecraft},
+    dt_{dt},
     max_steps_in_switch_region_{max_steps_in_switch_region},
     max_steps_in_end_region_{max_steps_in_end_region}
     {};

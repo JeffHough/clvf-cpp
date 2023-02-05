@@ -2,8 +2,21 @@
 #include "clvf/utils.h"
 
 namespace clvf {
-Spacecraft::Spacecraft(const Eigen::Matrix3d& inertia, double mass, double beta)
-: inertia_{inertia}, mass_{mass}, inertia_inverse_{inertia.inverse()}, beta_{beta}{};
+Spacecraft::Spacecraft(
+  const Eigen::Matrix3d& inertia, 
+  double mass, 
+  double beta,
+  const Eigen::Vector3d& o_hat_B,
+  const Eigen::Vector3d& docking_port_B,
+  double angle_of_acceptance
+)
+: inertia_{inertia}, 
+mass_{mass}, 
+inertia_inverse_{inertia.inverse()}, 
+beta_{beta},
+o_hat_B_{o_hat_B.normalized()},
+docking_port_B_{docking_port_B},
+angle_of_acceptance_{angle_of_acceptance}{};
 
 Eigen::Vector3d Spacecraft::OmegaDot(
   const Eigen::Vector3d& omega, 
