@@ -5,7 +5,7 @@
 
 int main(){
   // Set up a control parameter:
-  double beta = 200.0; // [rads/s]
+  double beta = 5.0; // [rads/s]
 
   // Set up a target spacecraft:
   Eigen::Matrix3d target_inertia = Eigen::Vector3d({3.0, 5.0, 7.0}).asDiagonal();
@@ -90,7 +90,7 @@ int main(){
 
   initial_data.target_orbital_position = pos_vel.first;
   initial_data.target_orbital_velocity = pos_vel.second;
-  initial_data.target_omega = {0.0*clvf::kD2R, 0.0, 0.0};
+  initial_data.target_omega = {0*clvf::kD2R, 5.0*clvf::kD2R, 0*clvf::kD2R};
   initial_data.target_C_BI = Eigen::Matrix3d::Identity();  
   initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.03, 0.01}); // km;
   initial_data.chaser_orbital_velocity = initial_data.target_orbital_velocity;

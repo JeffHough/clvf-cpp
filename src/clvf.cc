@@ -143,7 +143,7 @@ double CLVF::VFunctionDot(double r, double r_dot) const {
     return kc_ * clvf::Sign(alpha_ - r);
     */
     if (std::abs(r - alpha_) < b_){
-        return clvf::Sign(r - alpha_)  *  2*(kc_/(b_*b_)*(r-alpha_)) - 2*kc_/b_;
+        return (clvf::Sign(r - alpha_)  *  2*(kc_/(b_*b_)*(r-alpha_)) - 2*kc_/b_)*r_dot;
     }
     return 0.0;  
 }
