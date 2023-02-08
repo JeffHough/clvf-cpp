@@ -101,6 +101,25 @@ inline Eigen::Matrix3d NormalizeRotationMatrix(const Eigen::Matrix3d& C){
     return q_temp.matrix();
 }
 
+inline Eigen::Vector3d RotateVectorByQuaternion(const Eigen::Vector3d& v, const Eigen::Quaterniond& quaternion){
+    Eigen::Quaterniond tmp;
+    tmp.x() = v(0);
+    tmp.y() = v(1);
+    tmp.z() = v(2);
+
+    auto rotated_v = quaternion*tmp*quaternion.conjugate();
+    return Eigen::Vector3d({rotated_v.x(), rotated_v.y(), rotated_v.z()});
+}
+
+inline Eigen::Quaterniond QuaternionDerivative(const Eigen::Vector3d& omega, const Eigen::Quaterniond& quaternion){
+    Eigen::Quaterniond tmp;
+    tmp.x() = 0.5 *omega(0);
+    tmp.y() = 0.5 *omega(1);
+    tmp.z() = 0.5 *omega(2);
+
+    return (tmp * quaternion);
+}
+
 }
 
 #endif
