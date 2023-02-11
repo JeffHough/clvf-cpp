@@ -18,8 +18,8 @@ struct SimulationData {
   Eigen::Vector3d target_orbital_acceleration; // dependent
   Eigen::Vector3d target_omega;
   Eigen::Vector3d target_omega_dot_OI; // dependent
-  Eigen::Matrix3d target_C_BI;
-  Eigen::Matrix3d target_C_BI_dot; // dependent
+  Eigen::Quaterniond target_q_BI;
+  Eigen::Quaterniond target_q_BI_dot; // dependent
   
   Eigen::Vector3d chaser_orbital_position;
   Eigen::Vector3d chaser_orbital_velocity;
@@ -58,14 +58,22 @@ struct SimulationData {
     const Spacecraft& target_spacecraft
   ) {
   // Extract the C_BI from previous sim data:
-  const auto& C_BI = target_C_BI;
+  const auto& q_BI = target_q_BI;
+  Eigen::Quaterniond q_IB = q_BI.conjugate();
 
   // Angular dynamics:
-  target_omega_dot_OI = C_BI.transpose() * target_spacecraft.OmegaDot(C_BI*target_omega, Eigen::Vector3d::Zero());
-  target_C_BI_dot = target_spacecraft.RotationMatrixDot(C_BI, target_omega);
+  target_omega_dot_OI = 
+    RotateVectorByQuaternion( target_spacecraft.OmegaDot(
+      RotateVectorByQuaternion(target_omega, q_BI), 
+      Eigen::Vector3d::Zero()
+    ), q_IB);
+
+
+  target_q_BI_dot = QuaternionDerivative(target_omega, target_q_BI);
+  // target_C_BI_dot = target_spacecraft.RotationMatrixDot(C_BI, target_omega);
 
   // update compute the docking port vector:
-  target_d_vector_I = C_BI.transpose() * target_spacecraft.DVectorB();
+  target_d_vector_I =  RotateVectorByQuaternion(target_spacecraft.DVectorB(), q_IB);
 
   // The velocity of the docking port as viewed in the inertial frame:
   target_d_dot_I = 
@@ -77,10 +85,10 @@ struct SimulationData {
       target_omega.cross(target_omega.cross(target_d_vector_I));
 
   // The O_hat_vector of the CVLF:
-  target_o_hat_vector_I_CLVF = C_BI.transpose() * o_hat_B_CLVF;
+  target_o_hat_vector_I_CLVF = RotateVectorByQuaternion(o_hat_B_CLVF, q_IB);
 
   // And for the LVF:
-  target_o_hat_vector_I_LVF = C_BI.transpose() * target_spacecraft.OHatB();
+  target_o_hat_vector_I_LVF = RotateVectorByQuaternion(target_spacecraft.OHatB(), q_IB);
 
   // Chaser relative position and velocity in meters:
   chaser_relative_position = (chaser_orbital_position - target_orbital_position) * clvf::kKmToMeters;

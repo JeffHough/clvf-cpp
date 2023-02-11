@@ -18,15 +18,12 @@ int main(){
 
   // Rotate the vector:
   auto rotated_vector_1 = clvf::RotateVectorByQuaternion(v, q);
-  auto rotated_vector_2 = q.matrix() * v;
-
-  std::cout << "v1:\n" << rotated_vector_1 << "\nv2:\n" << rotated_vector_2 << std::endl;
 
   // Can I now integrate the rotation matrix/quaternion??
   Eigen::Vector3d omega = {-1.0, 0.5, 0.9};
   Eigen::Matrix3d C_dot = -clvf::Skew(omega)*q.matrix();
 
-  double dt = 0.1;
+  double dt = 0.001;
   Eigen::Matrix3d new_C = clvf::NormalizeRotationMatrix( clvf::EulerIntegrate(C_dot, q.matrix(), dt) );
   Eigen::Quaterniond q_new_1(new_C);
 

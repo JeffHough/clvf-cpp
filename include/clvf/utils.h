@@ -2,6 +2,7 @@
 #define CLVF_UTILS_H_
 
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <cmath>
 
 namespace clvf {
@@ -62,6 +63,23 @@ Eigen::Matrix<double, N, M> EulerIntegrate(
     return previous_value + derivative*dt;
 }
 
+// An integrator for quaternions::
+inline Eigen::Quaterniond EulerIntegrate(
+    const Eigen::Quaterniond& derivative, 
+    const Eigen::Quaterniond& previous_value,
+    double dt
+){
+    // Just does Euler interation (for now)
+    Eigen::Quaterniond result;
+    result.x() = previous_value.x() + derivative.x()*dt;
+    result.y() = previous_value.y() + derivative.y()*dt;
+    result.z() = previous_value.z() + derivative.z()*dt;
+    result.w() = previous_value.w() + derivative.w()*dt;
+
+    result.normalize();
+    return result;
+}
+
 // The Rotation matrix for the x-direction:
 inline Eigen::Matrix3d C1(double x){
     double cx = std::cos(x);
@@ -113,9 +131,9 @@ inline Eigen::Vector3d RotateVectorByQuaternion(const Eigen::Vector3d& v, const 
 
 inline Eigen::Quaterniond QuaternionDerivative(const Eigen::Vector3d& omega, const Eigen::Quaterniond& quaternion){
     Eigen::Quaterniond tmp;
-    tmp.x() = 0.5 *omega(0);
-    tmp.y() = 0.5 *omega(1);
-    tmp.z() = 0.5 *omega(2);
+    tmp.x() = -0.5 *omega(0);
+    tmp.y() = -0.5 *omega(1);
+    tmp.z() = -0.5 *omega(2);
 
     return (tmp * quaternion);
 }

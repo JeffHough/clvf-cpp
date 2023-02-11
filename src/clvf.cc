@@ -62,7 +62,7 @@ Eigen::Vector3d CLVF::DesiredVelocity(
 
     return VFunction(r, theta)*r_hat_vector
             + SFunction(r, theta)*AHatVector(r_vector, o_hat_vector)
-             + GFunction(r)*clvf::Skew(omega_OI)*r_hat_vector
+             + GFunction(r)*omega_OI.cross(r_hat_vector)
               + d_vector_dot;
 }
 

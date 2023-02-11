@@ -11,15 +11,13 @@ docking_port = df.filter(like="target_d_vector_I_")
 chaser_relative_position = df.filter(like="chaser_relative_position_")
 time = df.filter(like="time").values
 in_CLVF = df.filter(like="in_CLVF")
-target_C_BI = df[
-    ["target_C_BI_00", "target_C_BI_01","target_C_BI_02",
-    "target_C_BI_10","target_C_BI_11","target_C_BI_12",
-    "target_C_BI_20","target_C_BI_21","target_C_BI_22"]
+target_q_BI = df[
+    ["target_q_BI_x", "target_q_BI_y", "target_q_BI_z", "target_q_BI_w"]
 ]
 
 print(docking_port.head())
 print(chaser_relative_position.head())
-print(target_C_BI.head())
+print(target_q_BI.head())
 
 # plot the docking port, and the relative position over time:
 fig, axs = plt.subplots(4,1)
@@ -34,13 +32,12 @@ for i in range(3):
 axs[3].plot(time, in_CLVF.values)
 axs[3].grid()
 
-fig, axs = plt.subplots(3,3)
-for i in range(3):
-    for j in range(3):
-        target_C_BI_ij = target_C_BI.values[:, 3*i+j]
-        ax = axs[i,j]
-        ax.plot(time, target_C_BI_ij)
-        ax.grid()
-        ax.legend()
+fig, axs = plt.subplots(4,1)
+for i in range(4):
+    target_q_BI_i = target_q_BI.values[:, i]
+    ax = axs[i]
+    ax.plot(time, target_q_BI_i)
+    ax.grid()
+    ax.legend()
 
 plt.show()

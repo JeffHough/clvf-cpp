@@ -1,6 +1,8 @@
 #include "clvf/simulation.h"
 #include "clvf/utils.h"
 #include <fstream>
+#include <vector>
+#include <string>
 
 namespace clvf {
 
@@ -14,7 +16,7 @@ SimulationData Simulation::Step(
   auto should_run_CLVF = (sim_data_k.steps_in_switch_region < max_steps_in_switch_region_);
 
   // convenience:
-  const auto& C_BI = sim_data_k.target_C_BI;
+  const auto& q_BI = sim_data_k.target_q_BI;
 
   // Switch case 1: whether we should run the CLVF?
   if (should_run_CLVF) {
@@ -31,14 +33,16 @@ SimulationData Simulation::Step(
     );
 
     // Compute the desired acceleration:
-    data_out.desired_acceleration = clvf_.DesiredAcceleration(
+    data_out.desired_acceleration = (data_out.desired_speed - sim_data_k.desired_speed)/dt_;
+    
+    /*clvf_.DesiredAcceleration(
       sim_data_k.chaser_relative_position,
       sim_data_k.chaser_relative_velocity,
       sim_data_k.target_o_hat_vector_I_CLVF,
       sim_data_k.target_omega,
       sim_data_k.target_omega_dot_OI,
       sim_data_k.target_d_ddot_I
-    );
+    );*/
 
     // Check if we increment/reset the switch value of the CLVF:
     if (clvf_.InSwitchRange(sim_data_k.chaser_relative_position, sim_data_k.target_o_hat_vector_I_CLVF)){
@@ -90,7 +94,7 @@ SimulationData Simulation::Step(
 
   // Update the target rotation matrix:
   // TODO - SHOULD DO THIS IN TERMS OF QUATERNIONS
-  data_out.target_C_BI = clvf::NormalizeRotationMatrix(clvf::EulerIntegrate<3,3>(sim_data_k.target_C_BI_dot, sim_data_k.target_C_BI, dt_));
+  data_out.target_q_BI = clvf::EulerIntegrate(sim_data_k.target_q_BI_dot, sim_data_k.target_q_BI, dt_);
 
   // Check if the simulation should end:
   auto should_end = ((data_out.steps_in_end_region >= max_steps_in_end_region_) || (data_out.time >= max_time_));
@@ -168,18 +172,15 @@ void Simulation::LogHeaders(std::ofstream& data_stream){
     data_stream << "target_omega_OI_dot_" << i <<",";
   }  
 
-  // target C_BI:
-  for (int i = 0 ; i < 3 ; ++i){
-    for (int j = 0 ; j < 3 ; ++j){
-      data_stream << "target_C_BI_" << i << j << ",";
-    }
+  // target q_BI:
+  std::vector<std::string> names = {"x", "y", "z", "w"};
+  for (int i = 0 ; i < 4 ; ++i){
+    data_stream << "target_q_BI_" << names[i] << ",";
   }
 
-  // target C_BI_dot:
-  for (int i = 0 ; i < 3 ; ++i){
-    for (int j = 0 ; j < 3 ; ++j){
-      data_stream << "target_C_BI_dot_" << i << j << ",";
-    }
+  // target q_BI_dot:
+  for (int i = 0 ; i < 4 ; ++i){
+    data_stream << "target_q_BI_dot_" << names[i] << ",";
   }
 
   // Chaser oribtal position:
@@ -283,18 +284,16 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
   }
 
   // target C_BI:
-  for (int i = 0 ; i < 3 ; ++i){
-    for (int j = 0 ; j < 3 ; ++j){
-      data_stream << sim_data.target_C_BI(i,j) << ",";
-    }
-  }
+  data_stream << sim_data.target_q_BI.x() << ",";
+  data_stream << sim_data.target_q_BI.y() << ",";
+  data_stream << sim_data.target_q_BI.z() << ",";
+  data_stream << sim_data.target_q_BI.w() << ",";
 
   // target C_BI_dot:
-  for (int i = 0 ; i < 3 ; ++i){
-    for (int j = 0 ; j < 3 ; ++j){
-      data_stream << sim_data.target_C_BI_dot(i,j) << ",";
-    }
-  }
+  data_stream << sim_data.target_q_BI.x() << ",";
+  data_stream << sim_data.target_q_BI.y() << ",";
+  data_stream << sim_data.target_q_BI.z() << ",";
+  data_stream << sim_data.target_q_BI.w() << ",";
 
   // Chaser oribtal position:
   for (const auto& num : sim_data.chaser_orbital_position){
