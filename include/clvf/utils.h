@@ -131,9 +131,10 @@ inline Eigen::Vector3d RotateVectorByQuaternion(const Eigen::Vector3d& v, const 
 
 inline Eigen::Quaterniond QuaternionDerivative(const Eigen::Vector3d& omega, const Eigen::Quaterniond& quaternion){
     Eigen::Quaterniond tmp;
-    tmp.x() = -0.5 *omega(0);
-    tmp.y() = -0.5 *omega(1);
-    tmp.z() = -0.5 *omega(2);
+    tmp.x() = 0.5 *omega(0);
+    tmp.y() = 0.5 *omega(1);
+    tmp.z() = 0.5 *omega(2);
+    tmp.w() = 0.0;
 
     return (tmp * quaternion);
 }

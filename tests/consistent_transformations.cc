@@ -30,6 +30,7 @@ int main(){
   Eigen::Quaterniond q_dot = clvf::QuaternionDerivative(omega, q);
   Eigen::Quaterniond q_new_2 = clvf::EulerIntegrate(q_dot, q, dt);
 
+  std::cout << "q initial was:\n" << q << std::endl;
   std::cout << "q_update_1:\n" << q_new_1 << "\nq_update_2:\n" << q_new_2 << std::endl;
   
 }
