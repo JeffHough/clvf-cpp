@@ -26,6 +26,7 @@ struct SimulationData {
   Eigen::Vector3d chaser_orbital_acceleration; // dependent
   Eigen::Vector3d chaser_relative_position; //dependent
   Eigen::Vector3d chaser_relative_velocity; //dependent
+  Eigen::Vector3d chaser_relative_position_B; //dependent
 
   // Some geometry:
   Eigen::Vector3d target_d_vector_I; // dependent
@@ -93,6 +94,8 @@ struct SimulationData {
   // Chaser relative position and velocity in meters:
   chaser_relative_position = (chaser_orbital_position - target_orbital_position) * clvf::kKmToMeters;
   chaser_relative_velocity = (chaser_orbital_velocity - target_orbital_velocity) * clvf::kKmToMeters;
+
+  chaser_relative_position_B = RotateVectorByQuaternion(chaser_relative_position, q_BI);
 
   // Update the control vector:
   control_vector = chaser_spacecraft.Control(

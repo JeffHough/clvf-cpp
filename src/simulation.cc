@@ -203,6 +203,11 @@ void Simulation::LogHeaders(std::ofstream& data_stream){
     data_stream << "chaser_relative_position_" << i <<",";
   }
 
+  // Chaser relative position body fixed::
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "chaser_relative_position_B_" << i <<",";
+  }
+
   // Chaser relative velocity:
   for (int i = 0 ; i < 3 ; ++i){
     data_stream << "chaser_relative_velocity_" << i <<",";
@@ -312,6 +317,11 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
 
   // Chaser relative position:
   for (const auto& num : sim_data.chaser_relative_position){
+    data_stream << num <<",";
+  }
+
+  // Chaser relative position body fixed::
+  for (const auto& num : sim_data.chaser_relative_position_B){
     data_stream << num <<",";
   }
 

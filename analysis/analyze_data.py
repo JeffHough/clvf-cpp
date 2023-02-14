@@ -6,9 +6,10 @@ df = pd.read_csv("../build/test.csv")
 print(df.columns)
 print(df.shape)
 
-# get the docking port
+# extract desired data:
 docking_port = df.filter(like="target_d_vector_I_")
-chaser_relative_position = df.filter(like="chaser_relative_position_")
+chaser_relative_position = df[["chaser_relative_position_0","chaser_relative_position_1","chaser_relative_position_2"]]
+chaser_relative_position_B = df[["chaser_relative_position_B_0","chaser_relative_position_B_1","chaser_relative_position_B_2"]]
 time = df.filter(like="time").values
 in_CLVF = df.filter(like="in_CLVF")
 target_q_BI = df[
@@ -40,4 +41,21 @@ for i in range(4):
     ax.grid()
     ax.legend()
 
+# 3d plot for the relative position:
+fig = plt.figure()
+ax0 = fig.add_subplot(1, 2, 1, projection='3d')
+ax0.plot(
+    chaser_relative_position["chaser_relative_position_0"],
+    chaser_relative_position["chaser_relative_position_1"],
+    chaser_relative_position["chaser_relative_position_2"],
+)
+ax0.grid()
+ax1 = fig.add_subplot(1, 2, 2, projection='3d')
+ax1.plot(
+    chaser_relative_position_B["chaser_relative_position_B_0"],
+    chaser_relative_position_B["chaser_relative_position_B_1"],
+    chaser_relative_position_B["chaser_relative_position_B_2"],
+)
+# ax1.quiver([])
+ax1.grid()
 plt.show()
