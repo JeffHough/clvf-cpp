@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import animation
+import numpy as np
 
 # load the csv:
 df = pd.read_csv("../build/test.csv")
@@ -56,6 +58,29 @@ ax1.plot(
     chaser_relative_position_B["chaser_relative_position_B_1"],
     chaser_relative_position_B["chaser_relative_position_B_2"],
 )
-# ax1.quiver([])
 ax1.grid()
+
+
+#########################################################################################
+####################### ANIMATION #######################################################
+#########################################################################################
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1,projection='3d')
+
+points, = ax.plot([], [], [], 'o')
+
+def update(index):
+    points.set_data(chaser_relative_position_B.values[:index,:2].T)
+    points.set_3d_properties(chaser_relative_position_B.values[:index,:2])
+    return points,
+
+ani=animation.FuncAnimation(
+    fig, 
+    update, 
+    fargs=range(time.size), 
+    interval=10, 
+    blit=True, 
+    repeat=True
+)
+
 plt.show()
