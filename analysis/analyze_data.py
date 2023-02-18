@@ -82,6 +82,16 @@ fig.suptitle("3D path")
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1,projection='3d')
 
+# # plot the docking port position and direction:
+# ax.quiver(
+#     docking_port_B_x,
+#     docking_port_B_y,
+#     docking_port_B_z,
+#     o_vec_body_x,
+#     o_vec_body_y,
+#     o_vec_body_z
+# )
+
 points, = ax.plot([], [], [], 'o')
 fig.suptitle("Body-Fixed Animation")
 
