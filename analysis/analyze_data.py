@@ -34,6 +34,19 @@ for i in range(3):
     ax.legend()
 axs[3].plot(time, in_CLVF.values)
 axs[3].grid()
+fig.suptitle("Inertial Position")
+
+# plot the docking port, and the relative position over time:
+fig, axs = plt.subplots(4,1)
+for i in range(3):
+    chaser_relative_position_i = chaser_relative_position_B.values[:,i]
+    ax = axs[i]
+    ax.plot(time, chaser_relative_position_i, label="r")
+    ax.grid()
+    ax.legend()
+axs[3].plot(time, in_CLVF.values)
+axs[3].grid()
+fig.suptitle("Body-Fixed Position")
 
 fig, axs = plt.subplots(4,1)
 for i in range(4):
@@ -42,6 +55,7 @@ for i in range(4):
     ax.plot(time, target_q_BI_i)
     ax.grid()
     ax.legend()
+fig.suptitle("Quaternion Values")
 
 # 3d plot for the relative position:
 fig = plt.figure()
@@ -59,6 +73,7 @@ ax1.plot(
     chaser_relative_position_B["chaser_relative_position_B_2"],
 )
 ax1.grid()
+fig.suptitle("3D path")
 
 
 #########################################################################################
@@ -68,19 +83,32 @@ fig = plt.figure()
 ax = fig.add_subplot(1,1,1,projection='3d')
 
 points, = ax.plot([], [], [], 'o')
+fig.suptitle("Body-Fixed Animation")
 
-def update(index):
-    points.set_data(chaser_relative_position_B.values[:index,:2].T)
-    points.set_3d_properties(chaser_relative_position_B.values[:index,:2])
+def update(index: int):
+    x = chaser_relative_position_B["chaser_relative_position_B_0"].values[:index]
+    y = chaser_relative_position_B["chaser_relative_position_B_1"].values[:index]
+    z = chaser_relative_position_B["chaser_relative_position_B_2"].values[:index]
+
+    points.set_data(
+        x,
+        y,
+    )
+
+    points.set_3d_properties(z)
+    
+    if index > 0:
+        ax.set_xbound(lower=np.min(x),upper=np.max(x))
+        ax.set_ybound(lower=np.min(y), upper=np.max(y))
+        ax.set_zlim(np.min(z), np.max(z))
     return points,
 
 ani=animation.FuncAnimation(
     fig, 
     update, 
-    fargs=range(time.size), 
-    interval=10, 
-    blit=True, 
-    repeat=True
+    frames=[x for x in range(time.shape[0]) if np.mod(x,100)==0],
+    interval=0
+
 )
 
 plt.show()

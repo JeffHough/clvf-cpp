@@ -143,6 +143,7 @@ class CLVF {
 
     // Basic getter functions for some constant vectors:
     const Eigen::Vector3d& OHatB() const {return o_hat_B_;}
+    const double Alpha() const {return alpha_;}
 };
 
 // Class for standard Lyapunov Vector Field:

@@ -2,6 +2,7 @@
 #include "clvf/spacecraft.h"
 #include "clvf/utils.h"
 #include "clvf/simulation.h"
+#include <iostream>
 
 int main(){
   // Set up a control parameter:
@@ -87,6 +88,11 @@ int main(){
     argument_of_perigee,
     true_anomaly
   );
+
+  std::cout << "LVF target-vector\n" << target.OHatB() << 
+              "\nCLVF o-hat-vector\n"<<clvf_guidance.OHatB() << 
+              "\nCLVF target-vector"<< clvf_guidance.OHatB()*clvf_guidance.Alpha() << 
+              "\nLVF D-vector_B\n" << target.DVectorB() << "\n";
 
   initial_data.target_orbital_position = pos_vel.first;
   initial_data.target_orbital_velocity = pos_vel.second;
