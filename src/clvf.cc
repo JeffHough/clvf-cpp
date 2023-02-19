@@ -30,15 +30,13 @@ Eigen::Vector3d CLVF::AHatVector(
     const Eigen::Vector3d& o_hat_vector
 ) {
     double theta = ThetaFromTwoVectors(r_vector, o_hat_vector);
-
     Eigen::Vector3d r_hat_vector = r_vector.normalized();
 
-    constexpr double kSmallNumber = 0.00001;
-    if (std::abs(theta) > kSmallNumber){
-        return (o_hat_vector - r_hat_vector*std::cos(theta)) / std::sin(theta);
-    }
+    // if (std::abs(theta) > kSmallNumber){
+    return (o_hat_vector - r_hat_vector*std::cos(theta)) / (std::sin(theta)+kSmallNumber);
+    // }
 
-    return Eigen::Vector3d::Zero();
+    // return Eigen::Vector3d::Zero();
 }
 
 Eigen::Vector3d CLVF::EHatVector(
@@ -268,7 +266,7 @@ Eigen::Vector3d LVF::RHatDot(
     auto r_hat = r_vector.normalized();
     auto r = r_vector.norm();
 
-    return (Eigen::Matrix3d::Identity() - r_hat*r_hat.transpose())/r * velocity;
+    return (Eigen::Matrix3d::Identity() - r_hat*r_hat.transpose())/(r+clvf::kSmallNumber) * velocity;
 }
 
 Eigen::Vector3d LVF::AHatDot(

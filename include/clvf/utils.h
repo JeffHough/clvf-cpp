@@ -7,6 +7,8 @@
 
 namespace clvf {
 
+constexpr double kSmallNumber = 1e-7;
+
 // Some constants:
 constexpr double kMu = 3.986*1e5; // [km^3/s^2]
 constexpr double kEarthRadius = 6378.137; // [km]
@@ -48,8 +50,7 @@ inline double ThetaFromTwoVectors(
     const Eigen::Vector3d& a, 
     const Eigen::Vector3d& b
 ){
-    // NOTE: Assumes that neither a or b are the null vector {0,0,0}.
-    return std::acos(a.normalized().dot(b.normalized()));
+    return std::acos(a.dot(b)/(a.norm()*b.norm() + clvf::kSmallNumber));
 }
 
 // An integrator:

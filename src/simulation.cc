@@ -110,6 +110,94 @@ SimulationData Simulation::Step(
   // this will compute all of the control vectors, accelerations, relative positions, etc.
   data_out.ComputeDependentData(
     clvf_.OHatB(),
+    clvf_.Alpha(),
+    chaser_spacecraft_,
+    target_spacecraft_
+  );
+
+  // Finally, end the step:
+  return data_out;
+}
+
+SimulationData Simulation::KinematicStep(
+  const SimulationData& sim_data_k
+) const {
+  // Hold some memory to prevent resetting back to CLVF:
+  SimulationData data_out = sim_data_k;
+
+  // Check if we should run the CLVF:
+  auto should_run_CLVF = (sim_data_k.steps_in_switch_region < max_steps_in_switch_region_);
+
+  // convenience:
+  const auto& q_BI = sim_data_k.target_q_BI;
+
+  // Switch case 1: whether we should run the CLVF?
+  if (should_run_CLVF) {
+
+    // Record that we are in the CLVF:
+    data_out.in_CLVF = true;
+
+    // Compute the desired speed of the chaser:
+    data_out.desired_speed = clvf_.DesiredVelocity(
+      sim_data_k.chaser_relative_position,
+      sim_data_k.target_o_hat_vector_I_CLVF,
+      sim_data_k.target_omega,
+      sim_data_k.target_d_dot_I
+    );
+
+    // Check if we increment/reset the switch value of the CLVF:
+    if (clvf_.InSwitchRange(sim_data_k.chaser_relative_position, sim_data_k.target_o_hat_vector_I_CLVF)){
+      data_out.steps_in_switch_region = sim_data_k.steps_in_switch_region + 1;
+    } else {
+      data_out.steps_in_switch_region = 0;
+    }
+
+  } else {
+    // Record that we are in the LVF:
+    data_out.in_CLVF = false;
+
+    // Compute the desired speed and acceleration according to the LVF:
+    data_out.desired_speed = lvf_.DesiredVelocity(
+      sim_data_k.chaser_relative_position-sim_data_k.target_d_vector_I,
+      sim_data_k.target_o_hat_vector_I_LVF,
+      sim_data_k.target_omega,
+      sim_data_k.target_d_dot_I
+    );
+
+    // Check if we need to increment/reset the "end simulation" counter:
+    if (lvf_.InEndRange(sim_data_k.chaser_relative_position, sim_data_k.target_d_vector_I)){
+      data_out.steps_in_end_region = sim_data_k.steps_in_end_region + 1;
+    } else {
+      data_out.steps_in_end_region = 0;
+    }
+
+  }
+
+  // Integrate to get the new target omega:
+  data_out.target_omega = clvf::EulerIntegrate(sim_data_k.target_omega_dot_OI, sim_data_k.target_omega, dt_);
+
+  // Update the target rotation matrix:
+  data_out.target_q_BI = clvf::EulerIntegrate(sim_data_k.target_q_BI_dot, sim_data_k.target_q_BI, dt_);
+
+  // Check if the simulation should end:
+  auto should_end = ((data_out.steps_in_end_region >= max_steps_in_end_region_) || (data_out.time >= max_time_));
+
+  // Update chaser relative position and velocity in meters
+  data_out.chaser_relative_velocity = data_out.desired_speed;
+  data_out.chaser_relative_position = clvf::EulerIntegrate(data_out.desired_speed, data_out.chaser_relative_position, dt_);
+
+  // Switch case 0: simulation is already over:
+  if (should_end){
+    data_out.simulation_complete = true;
+  }
+
+  // Increment the time:
+  data_out.time = sim_data_k.time + dt_;
+
+  // this will compute all of the control vectors, accelerations, relative positions, etc.
+  data_out.ComputeDependentKinematicData(
+    clvf_.OHatB(),
+    clvf_.Alpha(),
     chaser_spacecraft_,
     target_spacecraft_
   );
@@ -127,7 +215,11 @@ void Simulation::Run(
   SimulationData sim_data = sim_data_initial;
 
   // Make sure the dependent data is already calculated:
-  sim_data.ComputeDependentData(clvf_.OHatB(), chaser_spacecraft_, target_spacecraft_);
+  sim_data.ComputeDependentData(
+    clvf_.OHatB(), 
+    clvf_.Alpha(), 
+    chaser_spacecraft_, 
+    target_spacecraft_);
 
   // Create a data file to log the simulation:
   std::ofstream data_stream;
@@ -138,6 +230,35 @@ void Simulation::Run(
   while(!sim_data.simulation_complete){
     LogData(data_stream, sim_data);
     sim_data = Step(sim_data);
+  }
+  LogData(data_stream, sim_data);
+  data_stream.close();
+}
+
+// Run a full simulation:
+void Simulation::KinematicRun(
+  const SimulationData& sim_data_initial,
+  const std::string& data_file_name
+) const {
+  // Create the sime data:
+  SimulationData sim_data = sim_data_initial;
+
+  // Make sure the dependent data is already calculated:
+  sim_data.ComputeDependentKinematicData(
+    clvf_.OHatB(), 
+    clvf_.Alpha(), 
+    chaser_spacecraft_, 
+    target_spacecraft_);
+
+  // Create a data file to log the simulation:
+  std::ofstream data_stream;
+  data_stream.open(data_file_name);
+
+  LogHeaders(data_stream);
+
+  while(!sim_data.simulation_complete){
+    LogData(data_stream, sim_data);
+    sim_data = KinematicStep(sim_data);
   }
   LogData(data_stream, sim_data);
   data_stream.close();
@@ -252,6 +373,23 @@ void Simulation::LogHeaders(std::ofstream& data_stream){
   for (int i = 0 ; i < 3 ; ++i){
     data_stream << "control_vector_" << i <<",";
   }
+
+  // target_d_vector_B:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_d_vector_B_" << i <<",";
+  }
+
+  // target_o_hat_vector_B_LVF:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_o_hat_vector_B_LVF_" << i <<",";
+  }
+
+  // target_o_hat_vector_B_CLVF:
+  for (int i = 0 ; i < 3 ; ++i){
+    data_stream << "target_o_hat_vector_B_CLVF_" << i <<",";
+  }
+
+  data_stream << "alpha_CLVF,";
 
   data_stream << "simulation_complete,";
   data_stream << "steps_in_switch_region,";
@@ -369,6 +507,31 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
   for (const auto& num : sim_data.control_vector){
     data_stream << num <<",";
   }
+
+
+  // data_stream << "alpha_CLVF,";
+
+  // data_stream << "simulation_complete,";
+  // data_stream << "steps_in_switch_region,";
+  // data_stream << "steps_in_end_region,";
+  // data_stream << "in_CLVF\n";
+
+  // target_d_vector_B:
+  for (const auto& num : sim_data.target_d_vector_B){
+    data_stream << num <<",";
+  }
+
+  // target_o_hat_vector_B_LVF:
+  for (const auto& num : sim_data.target_o_hat_vector_B_LVF){
+    data_stream << num <<",";
+  }
+
+  // target_o_hat_vector_B_CLVF:
+  for (const auto& num : sim_data.target_o_hat_vector_B_CLVF){
+    data_stream << num <<",";
+  }
+
+  data_stream << sim_data.alpha_CLVF << ",";
 
   data_stream << sim_data.simulation_complete << ",";
   data_stream << sim_data.steps_in_switch_region << ",";

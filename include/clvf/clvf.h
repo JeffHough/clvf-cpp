@@ -6,8 +6,6 @@
 
 namespace clvf {
 
-constexpr double kSmallNumber = 1e-7;
-
 // Guidance law based on CLVFs:
 class CLVF {
   private:
