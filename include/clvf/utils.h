@@ -126,7 +126,8 @@ inline Eigen::Vector3d RotateVectorByQuaternion(const Eigen::Vector3d& v, const 
     tmp.y() = v(1);
     tmp.z() = v(2);
 
-    auto rotated_v = quaternion*tmp*quaternion.conjugate();
+    //auto rotated_v = quaternion*tmp*quaternion.conjugate();
+    auto rotated_v = quaternion.conjugate()*tmp*quaternion;
     return Eigen::Vector3d({rotated_v.x(), rotated_v.y(), rotated_v.z()});
 }
 

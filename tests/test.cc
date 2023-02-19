@@ -11,8 +11,8 @@ int main(){
   // Set up a target spacecraft:
   Eigen::Matrix3d target_inertia = Eigen::Vector3d({3.0, 5.0, 7.0}).asDiagonal();
   double target_mass = 1.0;
-  Eigen::Vector3d o_hat_B = {1.0, -1., 0.};
-  Eigen::Vector3d d_vector_B = {1., 1., 0.};
+  Eigen::Vector3d o_hat_B = {1.0, 0., 0.};
+  Eigen::Vector3d d_vector_B = {1., 0., 0.};
   double angle_of_acceptance = 30 * clvf::kD2R;
   clvf::Spacecraft target(target_inertia, target_mass, beta, o_hat_B, d_vector_B, angle_of_acceptance);
 
@@ -96,7 +96,7 @@ int main(){
 
   initial_data.target_orbital_position = pos_vel.first;
   initial_data.target_orbital_velocity = pos_vel.second;
-  initial_data.target_omega = {-1.0*clvf::kD2R, 3.5*clvf::kD2R, 0.7*clvf::kD2R};
+  initial_data.target_omega = {0.0*clvf::kD2R, 3.5*clvf::kD2R, 0.0*clvf::kD2R};
   initial_data.target_q_BI = Eigen::Quaterniond::Identity();  
   // TODO: should the relative position be the "non-dependent" all the time?
   // initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.03, 0.01}); // km;

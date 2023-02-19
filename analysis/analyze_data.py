@@ -57,6 +57,15 @@ axs[3].plot(time, in_CLVF.values)
 axs[3].grid()
 fig.suptitle("Body-Fixed Position")
 
+# plot the o-hat-vector in the inertial frame over time:
+fig, axs = plt.subplots(3,1)
+for i in range(3):
+    o_vector_i = target_o_hat_vector_I_CLVF.values[:,i]
+    axs[i].plot(time, o_vector_i)
+    axs[i].grid()
+    axs[i].set_title("O-Hat in the Inertial Frame")
+
+# plot the quaternion values over time:
 fig, axs = plt.subplots(4,1)
 for i in range(4):
     target_q_BI_i = target_q_BI.values[:, i]
@@ -86,7 +95,6 @@ fig.suptitle("3D path")
 
 
 # Are we closing all the way? Check the size of "r" versus "alpha":
-
 r_norm = np.zeros(time.shape)
 for (i, r_vector) in zip(range(r_norm.size), chaser_relative_position.values):
     r_norm[i] = np.sqrt(r_vector[0]**2 + r_vector[1]**2 + r_vector[2]**2)
