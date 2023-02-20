@@ -42,6 +42,20 @@ struct SimulationData {
   // Control data:
   Eigen::Vector3d control_vector; // dependent
 
+  // Body-fixed things:
+  Eigen::Vector3d target_d_vector_B;          // dependent
+  Eigen::Vector3d target_o_hat_vector_B_CLVF; // dependent
+  Eigen::Vector3d target_o_hat_vector_B_LVF;  // dependent
+  double alpha_CLVF;                          // dependent
+
+  // CLVF core values:
+  double r_CLVF;        // dependent
+  double theta_CLVF;    // dependent
+
+  // LVF core values:
+  double r_LVF;         // dependent
+  double theta_LVF;     // dependent
+
   // Simulation complete:
   bool simulation_complete;
 
@@ -51,12 +65,6 @@ struct SimulationData {
 
   // Are we in the CLVF?
   bool in_CLVF;
-
-  // Body-fixed things:
-  Eigen::Vector3d target_d_vector_B;          // dependent
-  Eigen::Vector3d target_o_hat_vector_B_CLVF; // dependent
-  Eigen::Vector3d target_o_hat_vector_B_LVF;  // dependent
-  double alpha_CLVF;                          // dependent
 
   // A helper function to compute all of the "dependent data" given the true initial values:
   void ComputeDependentData(
@@ -132,6 +140,14 @@ struct SimulationData {
       Eigen::Vector3d::Zero(), 
       clvf::kMu
     );
+
+    // Compute the r and theta values for the CLVF:
+    r_CLVF = chaser_relative_position.norm();
+    theta_CLVF = ThetaFromTwoVectors(chaser_relative_position_B, o_hat_B_CLVF);
+
+    // Compute for the LVF:
+    r_LVF = (chaser_relative_position - target_d_vector_I).norm();
+    theta_CLVF = ThetaFromTwoVectors((chaser_relative_position - target_d_vector_I), target_o_hat_vector_I_LVF);
   }
 
   // A helper function to compute all of the "dependent data" given the true initial values:
@@ -181,6 +197,14 @@ struct SimulationData {
     // And for the LVF:
     target_o_hat_vector_I_LVF = RotateVectorByQuaternion(target_spacecraft.OHatB(), q_IB);
     chaser_relative_position_B = RotateVectorByQuaternion(chaser_relative_position, q_BI);
+
+    // Compute the r and theta values for the CLVF:
+    r_CLVF = chaser_relative_position.norm();
+    theta_CLVF = ThetaFromTwoVectors(chaser_relative_position_B, o_hat_B_CLVF);
+
+    // Compute for the LVF:
+    r_LVF = (chaser_relative_position - target_d_vector_I).norm();
+    theta_CLVF = ThetaFromTwoVectors((chaser_relative_position - target_d_vector_I), target_o_hat_vector_I_LVF);
   }
 
 };

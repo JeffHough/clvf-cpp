@@ -18,6 +18,10 @@ target_q_BI = df[
     ["target_q_BI_x", "target_q_BI_y", "target_q_BI_z", "target_q_BI_w"]
 ]
 
+# core CLVF values
+r_CLVF = df[["r_CLVF"]]
+theta_CLVF = df[["theta_CLVF"]]
+
 # o_hat_vector for the CLVF:
 target_d_vector_B = df[["target_d_vector_B_0", "target_d_vector_B_1","target_d_vector_B_2"]]
 target_o_hat_vector_B_CLVF = df[["target_o_hat_vector_B_CLVF_0", "target_o_hat_vector_B_CLVF_1","target_o_hat_vector_B_CLVF_2"]]
@@ -93,18 +97,19 @@ ax1.plot(
 ax1.grid()
 fig.suptitle("3D path")
 
+fig, axs = plt.subplots(2,1)
+axs[0].plot(time, target_alpha_CLVF, label="alpha")
+axs[0].plot(time, r_CLVF.values, label="r_norm")
+axs[0].grid()
+axs[0].legend()
+axs[0].set_title("r and alpha over time")
+axs[1].plot(time, theta_CLVF.values, label="theta")
+axs[1].grid()
+axs[1].legend()
+axs[1].set_title("theta over time")
+fig.suptitle("CLVF Core Values")
+fig.tight_layout()
 
-# Are we closing all the way? Check the size of "r" versus "alpha":
-r_norm = np.zeros(time.shape)
-for (i, r_vector) in zip(range(r_norm.size), chaser_relative_position.values):
-    r_norm[i] = np.sqrt(r_vector[0]**2 + r_vector[1]**2 + r_vector[2]**2)
-
-fig, axs = plt.subplots(1,1)
-axs.plot(time, target_alpha_CLVF, label="alpha")
-axs.plot(time, r_norm, label="r_norm")
-axs.grid()
-axs.legend()
-axs.set_title("radius and alpha over time")
 
 #########################################################################################
 ####################### ANIMATION #######################################################

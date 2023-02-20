@@ -391,6 +391,11 @@ void Simulation::LogHeaders(std::ofstream& data_stream){
 
   data_stream << "alpha_CLVF,";
 
+  data_stream << "r_CLVF,";
+  data_stream << "theta_CLVF,";
+  data_stream << "r_LVF,";
+  data_stream << "theta_CLVF,";
+
   data_stream << "simulation_complete,";
   data_stream << "steps_in_switch_region,";
   data_stream << "steps_in_end_region,";
@@ -508,14 +513,6 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
     data_stream << num <<",";
   }
 
-
-  // data_stream << "alpha_CLVF,";
-
-  // data_stream << "simulation_complete,";
-  // data_stream << "steps_in_switch_region,";
-  // data_stream << "steps_in_end_region,";
-  // data_stream << "in_CLVF\n";
-
   // target_d_vector_B:
   for (const auto& num : sim_data.target_d_vector_B){
     data_stream << num <<",";
@@ -532,6 +529,11 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
   }
 
   data_stream << sim_data.alpha_CLVF << ",";
+
+  data_stream << sim_data.r_CLVF << ",";
+  data_stream << sim_data.theta_CLVF << ",";
+  data_stream << sim_data.r_LVF << ",";
+  data_stream << sim_data.theta_CLVF << ",";
 
   data_stream << sim_data.simulation_complete << ",";
   data_stream << sim_data.steps_in_switch_region << ",";

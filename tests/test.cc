@@ -53,7 +53,7 @@ int main(){
   );
 
   // Instantiate the simulation:
-  double dt = 0.001;
+  double dt = 0.01;
   int max_steps_in_switch_region = static_cast<int>(5.0 / dt);
   int max_steps_in_end_region = static_cast<int>(5.0 / dt);
   double max_time = 5000.0; // seconds of simulation time.
@@ -96,12 +96,12 @@ int main(){
 
   initial_data.target_orbital_position = pos_vel.first;
   initial_data.target_orbital_velocity = pos_vel.second;
-  initial_data.target_omega = {0.0*clvf::kD2R, 3.5*clvf::kD2R, 0.0*clvf::kD2R};
+  initial_data.target_omega = {0.0*clvf::kD2R, 10*clvf::kD2R, 0.0*clvf::kD2R};
   initial_data.target_q_BI = Eigen::Quaterniond::Identity();  
   // TODO: should the relative position be the "non-dependent" all the time?
   // initial_data.chaser_orbital_position = initial_data.target_orbital_position + Eigen::Vector3d({0.05, -0.03, 0.01}); // km;
   // initial_data.chaser_orbital_velocity = initial_data.target_orbital_velocity;
-  initial_data.chaser_relative_position = {50, -30, 10};
+  initial_data.chaser_relative_position = {50, -30, 100};
   initial_data.simulation_complete = false;
   initial_data.in_CLVF = true;
 
