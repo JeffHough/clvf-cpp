@@ -98,7 +98,7 @@ ax1.grid()
 fig.suptitle("3D path")
 
 fig, axs = plt.subplots(2,1)
-axs[0].plot(time, target_alpha_CLVF, label="alpha")
+axs[0].plot(time, target_alpha_CLVF.values, label="alpha")
 axs[0].plot(time, r_CLVF.values, label="r_norm")
 axs[0].grid()
 axs[0].legend()

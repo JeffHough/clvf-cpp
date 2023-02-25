@@ -23,7 +23,7 @@ int main(){
   Eigen::Vector3d omega = {-1.0, 0.5, 0.9};
   Eigen::Matrix3d C_dot = -clvf::Skew(omega)*q.matrix();
 
-  double dt = 0.1;
+  double dt = 0.01;
   Eigen::Matrix3d new_C = clvf::NormalizeRotationMatrix( clvf::EulerIntegrate(C_dot, q.matrix(), dt) );
   Eigen::Quaterniond q_new_1(new_C);
 
@@ -46,7 +46,7 @@ int main(){
   q_BI.z() = 0.0;
   q_BI.w() = 0.7071;
   
-  // Integrate v_B by pure rotation:
+  // Integrate v_B by pure rotation [CORRECT]:
   Eigen::Vector3d v_I = clvf::RotateVectorByQuaternion(v_B, q_BI.conjugate());
   Eigen::Vector3d v_I_dot = w_BI.cross(v_I);
 

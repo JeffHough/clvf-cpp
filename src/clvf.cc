@@ -13,9 +13,11 @@ double CLVF::SFunction(double r, double theta) const {
 
 double CLVF::VFunction(double r, double theta) const {
     if (std::abs(r - alpha_) < b_){
-        return clvf::Sign(r - alpha_)  *  (kc_/(b_*b_)*(r-alpha_)*(r-alpha_)) - 2*kc_/b_*(r-alpha_);
+        double v_tmp = clvf::Sign(r - alpha_)  *  (kc_/(b_*b_)*(r-alpha_)*(r-alpha_)) - 2*kc_/b_*(r-alpha_);
+        return v_tmp;
     }
-    return kc_ * clvf::Sign(alpha_ - r);
+    double v_tmp = kc_ * clvf::Sign(alpha_ - r);
+    return v_tmp;
 }
 
 double CLVF::GFunction(double r) const {
@@ -33,7 +35,8 @@ Eigen::Vector3d CLVF::AHatVector(
     Eigen::Vector3d r_hat_vector = r_vector.normalized();
 
     // if (std::abs(theta) > kSmallNumber){
-    return (o_hat_vector - r_hat_vector*std::cos(theta)) / (std::sin(theta)+kSmallNumber);
+    auto a_hat_tmp = (o_hat_vector - r_hat_vector*std::cos(theta)) / (std::sin(theta)+kSmallNumber);
+    return a_hat_tmp;
     // }
 
     // return Eigen::Vector3d::Zero();
@@ -43,9 +46,10 @@ Eigen::Vector3d CLVF::EHatVector(
     const Eigen::Vector3d& r_vector,
     const Eigen::Vector3d& o_hat_vector
 ){
-    auto r_hat_vector = r_vector.normalized();
-    auto a_hat_vector = AHatVector(r_vector, o_hat_vector);
-    return r_hat_vector.cross(a_hat_vector);
+    Eigen::Vector3d r_hat_vector = r_vector.normalized();
+    Eigen::Vector3d a_hat_vector = AHatVector(r_vector, o_hat_vector);
+    Eigen::Vector3d e_hat_tmp = r_hat_vector.cross(a_hat_vector);
+    return e_hat_tmp;
 }
 
 Eigen::Vector3d CLVF::DesiredVelocity(
@@ -58,10 +62,11 @@ Eigen::Vector3d CLVF::DesiredVelocity(
     double r = r_vector.norm();
     Eigen::Vector3d r_hat_vector = r_vector.normalized();
 
-    return VFunction(r, theta)*r_hat_vector
-            + SFunction(r, theta)*AHatVector(r_vector, o_hat_vector)
-             + GFunction(r)*omega_OI.cross(r_hat_vector)
-              + d_vector_dot;
+    Eigen::Vector3d tmp_v = VFunction(r, theta)*r_hat_vector;
+    Eigen::Vector3d tmp_s = SFunction(r, theta)*AHatVector(r_vector, o_hat_vector);
+    Eigen::Vector3d tmp_g = GFunction(r)*omega_OI.cross(r_hat_vector);
+
+    return tmp_v + tmp_s + tmp_g + d_vector_dot; // NO D-VECTOR???
 }
 
 // Acceleration functions:
