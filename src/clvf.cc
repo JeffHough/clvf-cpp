@@ -66,7 +66,7 @@ Eigen::Vector3d CLVF::DesiredVelocity(
     Eigen::Vector3d tmp_s = SFunction(r, theta)*AHatVector(r_vector, o_hat_vector);
     Eigen::Vector3d tmp_g = GFunction(r)*omega_OI.cross(r_hat_vector);
 
-    return tmp_v + tmp_s + tmp_g + d_vector_dot; // NO D-VECTOR???
+    return tmp_v + tmp_s + tmp_g ;//+ d_vector_dot; // NO D-VECTOR???
 }
 
 // Acceleration functions:
