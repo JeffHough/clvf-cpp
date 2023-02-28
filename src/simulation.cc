@@ -7,7 +7,13 @@
 namespace clvf {
 
 SimulationData Simulation::Step(
-  const SimulationData& sim_data_k
+  const SimulationData& sim_data_k,
+  std::shared_ptr<IntegratorBase<3,1>> chaser_orbital_velocity_integrator,
+  std::shared_ptr<IntegratorBase<3,1>> chaser_orbital_position_integrator,
+  std::shared_ptr<IntegratorBase<3,1>> target_orbital_velocity_integrator,
+  std::shared_ptr<IntegratorBase<3,1>> target_orbital_position_integrator,
+  std::shared_ptr<IntegratorBase<3,1>> target_omega_integrator,
+  std::shared_ptr<QuaternionIntegratorBase> target_q_BI_integrator
 ) const {
   // Hold some memory to prevent resetting back to CLVF:
   SimulationData data_out = sim_data_k;
@@ -82,19 +88,18 @@ SimulationData Simulation::Step(
   }
 
   // Update chaser orbit velocity and position:
-  data_out.chaser_orbital_velocity = clvf::EulerIntegrate<3,1>(sim_data_k.chaser_orbital_acceleration, sim_data_k.chaser_orbital_velocity, dt_);
-  data_out.chaser_orbital_position = clvf::EulerIntegrate<3,1>(data_out.chaser_orbital_velocity, sim_data_k.chaser_orbital_position, dt_);
+  data_out.chaser_orbital_velocity = chaser_orbital_velocity_integrator->Integrate(sim_data_k.chaser_orbital_acceleration);
+  data_out.chaser_orbital_position = chaser_orbital_position_integrator->Integrate(data_out.chaser_orbital_velocity);
 
   // Update for the target orbit dynamics:
-  data_out.target_orbital_velocity = clvf::EulerIntegrate<3,1>(sim_data_k.target_orbital_acceleration, sim_data_k.target_orbital_velocity, dt_);
-  data_out.target_orbital_position = clvf::EulerIntegrate<3,1>(data_out.target_orbital_velocity, sim_data_k.target_orbital_position, dt_);
+  data_out.target_orbital_velocity = target_orbital_velocity_integrator->Integrate(sim_data_k.target_orbital_acceleration);
+  data_out.target_orbital_position = target_orbital_position_integrator->Integrate(data_out.target_orbital_velocity);
 
   // Integrate to get the new target omega:
-  data_out.target_omega = clvf::EulerIntegrate(sim_data_k.target_omega_dot_OI, sim_data_k.target_omega, dt_);
+  data_out.target_omega = target_omega_integrator->Integrate(sim_data_k.target_omega_dot_OI);
 
-  // Update the target rotation matrix:
-  // TODO - SHOULD DO THIS IN TERMS OF QUATERNIONS
-  data_out.target_q_BI = clvf::EulerIntegrate(sim_data_k.target_q_BI_dot, sim_data_k.target_q_BI, dt_);
+  // Update quaternion:
+  data_out.target_q_BI = target_q_BI_integrator->Integrate(sim_data_k.target_q_BI_dot);
 
   // Check if the simulation should end:
   auto should_end = ((data_out.steps_in_end_region >= max_steps_in_end_region_) || (data_out.time >= max_time_));
@@ -112,7 +117,8 @@ SimulationData Simulation::Step(
     clvf_.OHatB(),
     clvf_.Alpha(),
     chaser_spacecraft_,
-    target_spacecraft_
+    target_spacecraft_,
+    sim_data_k.chaser_relative_velocity
   );
 
   // Finally, end the step:
@@ -120,7 +126,10 @@ SimulationData Simulation::Step(
 }
 
 SimulationData Simulation::KinematicStep(
-  const SimulationData& sim_data_k
+  const SimulationData& sim_data_k,
+  std::shared_ptr<IntegratorBase<3,1>> chaser_relative_position_integrator,
+  std::shared_ptr<IntegratorBase<3,1>> target_omega_integrator,
+  std::shared_ptr<QuaternionIntegratorBase> target_q_BI_integrator
 ) const {
   // Hold some memory to prevent resetting back to CLVF:
   SimulationData data_out = sim_data_k;
@@ -174,17 +183,17 @@ SimulationData Simulation::KinematicStep(
   }
 
   // Integrate to get the new target omega:
-  data_out.target_omega = clvf::EulerIntegrate(sim_data_k.target_omega_dot_OI, sim_data_k.target_omega, dt_);
+  data_out.target_omega = target_omega_integrator->Integrate(sim_data_k.target_omega_dot_OI);
 
   // Update the target rotation matrix:
-  data_out.target_q_BI = clvf::EulerIntegrate(sim_data_k.target_q_BI_dot, sim_data_k.target_q_BI, dt_);
+  data_out.target_q_BI = target_q_BI_integrator->Integrate(sim_data_k.target_q_BI_dot);
 
   // Check if the simulation should end:
   auto should_end = ((data_out.steps_in_end_region >= max_steps_in_end_region_) || (data_out.time >= max_time_));
 
   // Update chaser relative position and velocity in meters
   data_out.chaser_relative_velocity = data_out.desired_speed;
-  data_out.chaser_relative_position = clvf::EulerIntegrate(data_out.desired_speed, data_out.chaser_relative_position, dt_);
+  data_out.chaser_relative_position = chaser_relative_position_integrator->Integrate(data_out.desired_speed);
 
   // Switch case 0: simulation is already over:
   if (should_end){
@@ -199,7 +208,8 @@ SimulationData Simulation::KinematicStep(
     clvf_.OHatB(),
     clvf_.Alpha(),
     chaser_spacecraft_,
-    target_spacecraft_
+    target_spacecraft_,
+    sim_data_k.desired_speed
   );
 
   // Finally, end the step:
@@ -207,11 +217,11 @@ SimulationData Simulation::KinematicStep(
 }
 
 // Run a full simulation:
-void Simulation::Run(
+SimulationResult Simulation::Run(
   const SimulationData& sim_data_initial,
   const std::string& data_file_name
 ) const {
-  // Create the sime data:
+  // Create the sim data:
   SimulationData sim_data = sim_data_initial;
 
   // Make sure the dependent data is already calculated:
@@ -219,24 +229,53 @@ void Simulation::Run(
     clvf_.OHatB(), 
     clvf_.Alpha(), 
     chaser_spacecraft_, 
-    target_spacecraft_);
+    target_spacecraft_,
+    sim_data.chaser_relative_velocity);
 
-  // Create a data file to log the simulation:
+  // Create all of the relavent integrators:
+  auto chaser_orbital_velocity_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.chaser_orbital_velocity, dt_);
+  auto chaser_orbital_position_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.chaser_orbital_position, dt_);
+  auto target_orbital_velocity_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.target_orbital_velocity, dt_);
+  auto target_orbital_position_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.target_orbital_position, dt_);
+  auto target_omega_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.target_omega, dt_);
+  auto target_q_BI_integrator = std::make_shared<QuaternionEulerIntegrator>(sim_data.target_q_BI, dt_);
+
+  // Create a data file to log the simulation,
+  // only if a file name is given.
   std::ofstream data_stream;
-  data_stream.open(data_file_name);
-
-  LogHeaders(data_stream);
+  if (data_file_name != ""){
+    data_stream.open(data_file_name);
+    LogHeaders(data_stream);
+  }
 
   while(!sim_data.simulation_complete){
-    LogData(data_stream, sim_data);
-    sim_data = Step(sim_data);
+    if (data_file_name != ""){
+      LogData(data_stream, sim_data);
+    }
+    sim_data = Step(
+      sim_data,
+      chaser_orbital_velocity_integrator,
+      chaser_orbital_position_integrator,
+      target_orbital_velocity_integrator,
+      target_orbital_position_integrator,
+      target_omega_integrator,
+      target_q_BI_integrator);
   }
-  LogData(data_stream, sim_data);
-  data_stream.close();
+
+  if (data_file_name != ""){
+    LogData(data_stream, sim_data);
+    data_stream.close();
+  }
+
+  SimulationResult result{};
+  result.total_delta_v = sim_data.accumulated_delta_v;
+  result.total_time = sim_data.time;
+
+  return result;
 }
 
 // Run a full simulation:
-void Simulation::KinematicRun(
+SimulationResult Simulation::KinematicRun(
   const SimulationData& sim_data_initial,
   const std::string& data_file_name
 ) const {
@@ -248,20 +287,41 @@ void Simulation::KinematicRun(
     clvf_.OHatB(), 
     clvf_.Alpha(), 
     chaser_spacecraft_, 
-    target_spacecraft_);
+    target_spacecraft_,
+    Eigen::Vector3d::Zero());
+
+  // Create the integrators:
+  auto chaser_relative_position_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.chaser_relative_position, dt_);
+  auto target_omega_integrator = std::make_shared<EulerIntegrator<3,1>>(sim_data.target_omega, dt_);
+  auto target_q_BI_integrator = std::make_shared<QuaternionEulerIntegrator>(sim_data.target_q_BI, dt_);
 
   // Create a data file to log the simulation:
   std::ofstream data_stream;
-  data_stream.open(data_file_name);
-
-  LogHeaders(data_stream);
+  if (data_file_name != ""){
+    data_stream.open(data_file_name);
+    LogHeaders(data_stream);
+  }
 
   while(!sim_data.simulation_complete){
-    LogData(data_stream, sim_data);
-    sim_data = KinematicStep(sim_data);
+    if (data_file_name != ""){
+      LogData(data_stream, sim_data);
+    }
+    sim_data = KinematicStep(
+      sim_data,
+      chaser_relative_position_integrator,
+      target_omega_integrator,
+      target_q_BI_integrator);
   }
-  LogData(data_stream, sim_data);
-  data_stream.close();
+  if (data_file_name != ""){
+    LogData(data_stream, sim_data);
+    data_stream.close();
+  }
+
+  SimulationResult result{};
+  result.total_delta_v = sim_data.accumulated_delta_v;
+  result.total_time = sim_data.time;
+
+  return result;
 }
 
 void Simulation::LogHeaders(std::ofstream& data_stream){
@@ -399,7 +459,9 @@ void Simulation::LogHeaders(std::ofstream& data_stream){
   data_stream << "simulation_complete,";
   data_stream << "steps_in_switch_region,";
   data_stream << "steps_in_end_region,";
-  data_stream << "in_CLVF\n";
+  data_stream << "in_CLVF,";
+  data_stream << "delta_v,";
+  data_stream << "accumulated_delta_v\n";
 }
 
 void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_data){
@@ -538,7 +600,9 @@ void Simulation::LogData(std::ofstream& data_stream, const SimulationData& sim_d
   data_stream << sim_data.simulation_complete << ",";
   data_stream << sim_data.steps_in_switch_region << ",";
   data_stream << sim_data.steps_in_end_region << ",";
-  data_stream << sim_data.in_CLVF << "\n";
+  data_stream << sim_data.in_CLVF << ",";
+  data_stream << sim_data.delta_v << ",";
+  data_stream << sim_data.accumulated_delta_v << "\n";
 }
 
 }

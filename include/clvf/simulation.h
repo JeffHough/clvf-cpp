@@ -1,12 +1,20 @@
 #ifndef CLVF_SIMULATION_H_
 #define CLVF_SIMULATION_H_
 
+#include <memory>
+#include <fstream>
+
 #include "clvf/spacecraft.h"
 #include "clvf/clvf.h"
-#include <fstream>
 #include "clvf/utils.h"
+#include "clvf/integrators.h"
 
 namespace clvf {
+
+struct SimulationResult {
+  double total_time;
+  double total_delta_v;
+};
 
 struct SimulationData {
   // Time
@@ -20,7 +28,6 @@ struct SimulationData {
   Eigen::Vector3d target_omega_dot_OI; // dependent
   Eigen::Quaterniond target_q_BI;
   Eigen::Quaterniond target_q_BI_dot; // dependent
-  
   Eigen::Vector3d chaser_orbital_position;
   Eigen::Vector3d chaser_orbital_velocity;
   Eigen::Vector3d chaser_orbital_acceleration; // dependent
@@ -66,12 +73,17 @@ struct SimulationData {
   // Are we in the CLVF?
   bool in_CLVF;
 
+  // PERFORMANCE METRICS:
+  double delta_v;
+  double accumulated_delta_v;
+
   // A helper function to compute all of the "dependent data" given the true initial values:
   void ComputeDependentData(
     const Eigen::Vector3d& o_hat_B_CLVF,
     double alpha_CLVF_in,
     const Spacecraft& chaser_spacecraft,
-    const Spacecraft& target_spacecraft
+    const Spacecraft& target_spacecraft,
+    const Eigen::Vector3d& previous_velocity
   ) {
 
     // grab the body fixed values again:
@@ -94,7 +106,6 @@ struct SimulationData {
 
 
     target_q_BI_dot = QuaternionDerivative(target_omega, target_q_BI);
-    // target_C_BI_dot = target_spacecraft.RotationMatrixDot(C_BI, target_omega);
 
     // update compute the docking port vector:
     target_d_vector_I =  RotateVectorByQuaternion(target_spacecraft.DVectorB(), q_IB);
@@ -148,6 +159,10 @@ struct SimulationData {
     // Compute for the LVF:
     r_LVF = (chaser_relative_position - target_d_vector_I).norm();
     theta_CLVF = ThetaFromTwoVectors((chaser_relative_position - target_d_vector_I), target_o_hat_vector_I_LVF);
+
+    // Compute the delta-v for this step, and accumulated delta-v:
+    delta_v = (chaser_relative_velocity - previous_velocity).norm();
+    accumulated_delta_v += delta_v;
   }
 
   // A helper function to compute all of the "dependent data" given the true initial values:
@@ -155,14 +170,14 @@ struct SimulationData {
     const Eigen::Vector3d& o_hat_B_CLVF,
     double alpha_CLVF_in,
     const Spacecraft& chaser_spacecraft,
-    const Spacecraft& target_spacecraft
+    const Spacecraft& target_spacecraft,
+    const Eigen::Vector3d& previous_desired_speed
   ) {
 
     // grab the body fixed values again:
     target_d_vector_B = target_spacecraft.DVectorB();
     target_o_hat_vector_B_LVF = target_spacecraft.OHatB();
     target_o_hat_vector_B_CLVF = o_hat_B_CLVF;
-
     alpha_CLVF = alpha_CLVF_in;
 
     // Extract the C_BI from previous sim data:
@@ -205,6 +220,10 @@ struct SimulationData {
     // Compute for the LVF:
     r_LVF = (chaser_relative_position - target_d_vector_I).norm();
     theta_CLVF = ThetaFromTwoVectors((chaser_relative_position - target_d_vector_I), target_o_hat_vector_I_LVF);
+  
+    // Compute the delta-v's:
+    delta_v = (desired_speed - previous_desired_speed).norm();
+    accumulated_delta_v += delta_v;
   }
 
 };
@@ -254,22 +273,36 @@ class Simulation {
     {};
 
     // Single step in the simulation:
-    SimulationData Step(const SimulationData& sim_data_k) const;
+    SimulationData Step(
+      const SimulationData& sim_data_k,
+      std::shared_ptr<IntegratorBase<3,1>> chaser_orbital_velocity_integrator,
+      std::shared_ptr<IntegratorBase<3,1>> chaser_orbital_position_integrator,
+      std::shared_ptr<IntegratorBase<3,1>> target_orbital_velocity_integrator,
+      std::shared_ptr<IntegratorBase<3,1>> target_orbital_position_integrator,
+      std::shared_ptr<IntegratorBase<3,1>> target_omega_integrator,
+      std::shared_ptr<QuaternionIntegratorBase> target_q_BI_integrator
+    ) const;
 
     // Running the simulation:
-    void Run(
+    SimulationResult Run(
       const SimulationData& sim_data_initial,
-      const std::string& data_file_name
+      const std::string& data_file_name=""
     ) const;
 
     // Pure kinematic step:
-    SimulationData KinematicStep(const SimulationData& sim_data_k) const;
+    SimulationData KinematicStep(
+      const SimulationData& sim_data_k,
+      std::shared_ptr<IntegratorBase<3,1>> chaser_relative_position_integrator,
+      std::shared_ptr<IntegratorBase<3,1>> target_omega_integrator,
+      std::shared_ptr<QuaternionIntegratorBase> target_q_BI_integrator
+    ) const;
 
     // Run a pure kinematic simulation:
-    void KinematicRun(
+    SimulationResult KinematicRun(
       const SimulationData& sim_data_initial,
-      const std::string& data_file_name
-    ) const;};
+      const std::string& data_file_name = ""
+    ) const;
+};
 }
 
 #endif

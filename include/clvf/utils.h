@@ -53,34 +53,6 @@ inline double ThetaFromTwoVectors(
     return std::acos(a.dot(b)/(a.norm()*b.norm() + clvf::kSmallNumber));
 }
 
-// An integrator:
-template <int N, int M>
-Eigen::Matrix<double, N, M> EulerIntegrate(
-    const Eigen::Matrix<double, N, M>& derivative, 
-    const Eigen::Matrix<double, N, M>& previous_value,
-    double dt
-){
-    // Just does Euler interation (for now)
-    return previous_value + derivative*dt;
-}
-
-// An integrator for quaternions::
-inline Eigen::Quaterniond EulerIntegrate(
-    const Eigen::Quaterniond& derivative, 
-    const Eigen::Quaterniond& previous_value,
-    double dt
-){
-    // Just does Euler interation (for now)
-    Eigen::Quaterniond result;
-    result.x() = previous_value.x() + derivative.x()*dt;
-    result.y() = previous_value.y() + derivative.y()*dt;
-    result.z() = previous_value.z() + derivative.z()*dt;
-    result.w() = previous_value.w() + derivative.w()*dt;
-
-    result.normalize();
-    return result;
-}
-
 // The Rotation matrix for the x-direction:
 inline Eigen::Matrix3d C1(double x){
     double cx = std::cos(x);
